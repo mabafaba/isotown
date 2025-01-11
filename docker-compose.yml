@@ -1,0 +1,21 @@
+version: '3'
+services:
+  web:
+    depends_on:
+      - mongodb
+    image: isotown
+    container_name: isotown-web
+    ports:
+      - "3000:3000"
+    environment:
+      - DOCKER=true
+    restart: always
+  mongodb:
+    image: mongo
+    container_name: isotown-mongodb
+    restart: always
+    volumes:
+      - isotown-mongodb-data:/data/db
+
+volumes:
+  isotown-mongodb-data:

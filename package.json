@@ -1,0 +1,21 @@
+{
+  "name": "isotown",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "docker": "docker build -t isotown . && docker compose up",
+    "deploy": "git pull && docker build -t isotown . && docker compose up" 
+
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "express": "^4.21.1",
+    "image-size": "^1.2.0",
+    "mongoose": "^8.8.4"
+  }
+}

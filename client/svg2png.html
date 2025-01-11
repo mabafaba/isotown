@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <svg id="mySVG" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+        <circle cx="100" cy="100" r="2000" fill="blue" />
+    </svg>
+    <button id="exportBtn">Export to PNG</button>
+    <div id="output">
+        <p>Exported Image:</p>
+        <img id="exportedImage" alt="Exported PNG will appear here" />
+    </div>
+    <script>
+       
+        document.getElementById("exportBtn").addEventListener("click", () => {
+            const svg = document.getElementById("mySVG");
+            svg2png(svg, (pngData) => {
+                // Display the image
+                const outputImg = document.getElementById("exportedImage");
+                outputImg.src = pngData;
+
+                // Trigger download
+                const link = document.createElement("a");
+                link.href = pngData;
+                link.download = "exported-image.png";
+                link.click();
+            });
+        });
+    </script>
+</body>
+</html>
+
+<!-- black background-->
+<style>
+        body {
+                background-color: black;
+                color: white;
+        }
+
+        /* svg white bg */
+        #mySVG {
+                background-color: white;
+        }
+        /* img orange */
+        #exportedImage {
+                background-color: orange;
+        }
+</style>
+<script>
+    function svg2png(svgElement) {
+        return new Promise((resolve, reject) => {
+            const svgData = new XMLSerializer().serializeToString(svgElement);
+            const img = new Image();
+            const canvas = document.createElement("canvas");
+
+            // Match canvas size to SVG size
+            canvas.width = svgElement.width.baseVal.value;
+            canvas.height = svgElement.height.baseVal.value;
+            const ctx = canvas.getContext("2d");
+
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0);
+                const pngData = canvas.toDataURL("image/png");
+                resolve(pngData);
+            };
+
+            img.onerror = reject;
+            img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+        });
+    }
+
+    document.getElementById("exportBtn").addEventListener("click", () => {
+        const svg = document.getElementById("mySVG");
+        svg2png(svg).then((pngData) => {
+            // Display the image
+            const outputImg = document.getElementById("exportedImage");
+            outputImg.src = pngData;
+
+            // Trigger download
+            const link = document.createElement("a");
+            link.href = pngData;
+            link.download = "exported-image.png";
+            link.click();
+        }).catch((error) => {
+            console.error("Error converting SVG to PNG:", error);
+        });
+    });
+</script>
