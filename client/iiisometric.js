@@ -113,7 +113,7 @@ class IsometricDrawing extends HTMLElement {
             `0,${this.baseSize / 4} ${this.baseSize / 2},0 ${this.baseSize},${this.baseSize / 4} ${
                 this.baseSize / 2
             },${this.baseSize / 2}`
-        );
+        );  
 
         this.left = svg.symbol();
         this.left.polygon(
