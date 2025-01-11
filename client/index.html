@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Document</title>
+    <!-- pixelspeechbubbles.css -->
+    <link rel="stylesheet" href="pixelspeechbubbles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <script src="sketch.js" defer></script>
     <!-- intro.js -->
@@ -72,6 +75,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            cursor: pointer;
 
         }
 
@@ -95,6 +99,33 @@
             content: '\f067';
         }
 
+        .cancelcellaction {
+            background-color: lightcoral !important;
+            /* content fontawesome times icon */
+            content: '\f00d';
+        }
+
+        .leavenoteaction {
+            background-color: lightyellow !important;
+            /* content fontawesome sticky note icon */        }
+
+        .leavenoteaction:hover {
+            background-color: rgb(255, 255, 0) !important;
+        }
+
+        #gamecancelactionbutton {
+            display: none;
+            background-color: lightcoral !important;
+            /* content fontawesome times icon */
+            content: '\f00d';
+        }
+
+        #gamecancelactionbutton:hover {
+            background-color: rgb(255, 0, 0) !important;
+        }
+
+        
+
     cell-editor {
         position: absolute;
         top: 0;
@@ -110,10 +141,15 @@
        /* display: none; */
     }
 
-
     .movearrow {
-       cursor: pointer;
+        cursor: pointer;
     }
+
+    .movearrow:hover img {
+        filter: invert(1);
+    }
+
+    
 
     </style>
 </head>
@@ -122,13 +158,14 @@
 
 <body>
 
-    <!-- round zoom in & out buttons bottom right corner -->
-
-<!-- show "loading" div underneath it all -->
-
 
 <div id="gamecontrols">
     <div class="roundbutton addcellaction" id="gameprimaryactionbutton"></div>
+    <!-- cancel button -->
+    <div class="roundbutton cancelcellaction" id="gamecancelactionbutton">
+        <!-- font awesome 'times' icon -->
+        <i class="fas fa-times"></i>
+    </div>
     <div id="zoom-buttons" style="display:none;">
         <button id="zoom-in">+</button>
         <button id="zoom-out">-</button>
@@ -149,6 +186,11 @@
         </table>
 
     </div>
+    <div class="roundbutton leavenoteaction" id="gameleavenotebutton">
+        <!-- font awesome 'comment' icon -->
+        <i class="fas fa-comment"></i>
+    </div>
+
 </div>
 <cell-editor></cell-editor>
 
@@ -191,6 +233,7 @@
 
 
 
+
     setPrimaryActionToAddCell = () => {
         const primaryActionButton = document.getElementById('gameprimaryactionbutton');
         primaryActionButton.classList.add('addcellaction');
@@ -205,9 +248,28 @@
     }
     setPrimaryActionToAddCell();
 
+    setLeaveNoteAction = () => {
+        const leaveNoteButton = document.getElementById('gameleavenotebutton');
+        leaveNoteButton.classList.add('leavenoteaction');
+        leaveNoteButton.innerHTML = '<i class="fas fa-sticky-note"></i>';
+        leaveNoteButton.addEventListener('click', () => {
+            // stop event propagation
+            event.stopPropagation();
+            openAddNoteDialog();
+        });
+    }
+
 
     openAddCellDialog = () => {
 
+        // hide p5 canvas
+        const canvas = document.querySelector('canvas');
+        canvas.style.display = 'none';
+        // hide #activeCellDiv
+        const activeCellDiv = document.getElementById('activeCellDiv');
+        if (activeCellDiv){
+        activeCellDiv.style.display = 'none';
+    }
         const cellEditor = document.querySelector('cell-editor');
         cellEditor.editCell(grid.activeCell.i,grid.activeCell.j);
         console.log(cellEditor);
@@ -215,6 +277,67 @@
         // get isometric-drawing component from shadow root
         const isometricDrawing = cellEditor.shadowRoot.querySelector('isometric-drawing');
         isometricDrawing.setSize(300,600);
+    }
+
+    closeAddCellDialog = () => {
+        const canvas = document.querySelector('canvas');
+        canvas.style.display = 'block';
+
+        // show activeCellDiv
+        const activeCellDiv = document.getElementById('activeCellDiv');
+        if (activeCellDiv){
+        activeCellDiv.style.display = 'block';
+    }
+        const cellEditor = document.querySelector('cell-editor');
+        cellEditor.style.display = 'none';
+    }
+
+    // listen for         this.dispatchEvent(new CustomEvent('cancel-editing-cell'));
+    document.addEventListener('cancel-editing-cell', () => {
+        console.log('cancel-editing-cell event received');
+        closeAddCellDialog();
+    });
+
+    // listen for cell-editing-finished
+    document.addEventListener('cell-editing-finished', () => {
+        console.log('cell-editing-finished event received');
+        closeAddCellDialog();
+    });
+
+    // leave a cookie so we know the user has been here before
+
+
+    startSelectCellToBuildMode = () => {
+        // hide add cell action button
+        const primaryActionButton = document.getElementById('gameprimaryactionbutton');
+        primaryActionButton.style.display = 'none';
+        // hide leave note action button
+        const leaveNoteButton = document.getElementById('gameleavenotebutton');
+        leaveNoteButton.style.display = 'none';
+
+        // show gamecancelactionbutton
+        const cancelActionButton = document.getElementById('gamecancelactionbutton');
+        cancelActionButton.style.display = 'block';
+        cancelActionButton.addEventListener('click', () => {
+            // stop event propagation
+            event.stopPropagation();
+            stopSelectCellToBuildMode();
+        });
+
+
+    }
+    
+    stopSelectCellToBuildMode = () => {
+        // show add cell action button
+        const primaryActionButton = document.getElementById('gameprimaryactionbutton');
+        primaryActionButton.style.display = 'block';
+        // show leave note action button
+        const leaveNoteButton = document.getElementById('gameleavenotebutton');
+        leaveNoteButton.style.display = 'block';
+
+        // hide gamecancelactionbutton
+        const cancelActionButton = document.getElementById('gamecancelactionbutton');
+        cancelActionButton.style.display = 'none';
     }
 
 </script>

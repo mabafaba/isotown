@@ -8,7 +8,7 @@ class EditCellComponent extends HTMLElement {
         this.cellX = 0;
         this.cellY = 0;
         this.page = 1;
-        this.maxPage = 3;
+        this.maxPage = 4;
 
         const template = document.createElement('template');
         template.innerHTML = `
@@ -81,8 +81,17 @@ class EditCellComponent extends HTMLElement {
                     width: 100px;
                     height: 50px;
                 }
+                #cancelButton {
+                    position: fixed;
+                    right: 160px;
+                    bottom: 10px;
+                    width: 100px;
+                    height: 50px;
+                    background-color: red;
+                    color: white;
+                }
 
-                #page1 {
+                #page2 {
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
@@ -90,7 +99,7 @@ class EditCellComponent extends HTMLElement {
                     margin: 0px;
                 }
 
-                #page2 {
+                #page3 {
                     display:flex;
                     flex-direction: row;
                     justify-content: space-between;
@@ -121,11 +130,30 @@ class EditCellComponent extends HTMLElement {
                         width: 100%;
                     }
                 }
+                textarea {
+                    display: block;
+                    width: 80%;
+                    height: auto;
+                    rows: 5;
+                }
+                .description {
+                    display: block;
+                    width: 100%;
+                    height: auto;
+                    padding: 10px;
                 }
             </style>
             <div class="container">
             <h1>Edit Cell</h1>
             <div id="page1">
+                <div class="instructions">
+                    Please describe your idea in a few sentences!
+                </div>
+                <div id="description">
+                    <textarea id="cellDescription" name="cellDescription"></textarea>
+                </div>
+            </div>
+            <div id="page2">
             <div class="instructions">
                 Record your voice to explain what your field is all about!
                 It doesn't have to be perfect, just give it a try!
@@ -135,7 +163,7 @@ class EditCellComponent extends HTMLElement {
             </div>
             <audio-recorder></audio-recorder>
             </div>
-            <div id="page2">
+            <div id="page3">
             <div class="instructions drawinginstructions">
             In the field below, draw a picture that will be shown on the playing field.
             You don't have to be an artist, just give it a try!
@@ -145,14 +173,14 @@ class EditCellComponent extends HTMLElement {
             <isometric-drawing></isometric-drawing>
             </div>
             </div>
-            <div id="page3">
+            <div id="page4">
             </div>
             <div id="navigationbuttons">
                 <div id="prevPlaceholder"></div>
                 <button id="previousButton" @click="previousPage">Back</button>
                 <button id="nextButton" @click="nextPage">Next</button>
                 <button id="savedb">DONE</button>
-
+                <button id="cancelButton">Cancel</button>
             </div>
             <script src="https://unpkg.com/wavesurfer.js@7"></script>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -163,9 +191,7 @@ class EditCellComponent extends HTMLElement {
         this.setPage(1);
         this.shadowRoot.getElementById('previousButton').addEventListener('click', this.previousPage.bind(this));
         this.shadowRoot.getElementById('nextButton').addEventListener('click', this.nextPage.bind(this));
-
-
-   
+        this.shadowRoot.getElementById('cancelButton').addEventListener('click', this.cancelEdit.bind(this));
     }
 
     nextPage() {
@@ -225,6 +251,7 @@ class EditCellComponent extends HTMLElement {
             console.log('Saving to database cell:', this.cellX, this.cellY);
 
             const voice = this.shadowRoot.querySelector('audio-recorder').getAudioBlob();
+            const description = this.shadowRoot.getElementById('cellDescription').value;
 
             this.shadowRoot.querySelector('isometric-drawing').exportPNG().then((imgURL) => {
                 const reader = new FileReader();
@@ -235,7 +262,8 @@ class EditCellComponent extends HTMLElement {
                         x: this.cellX,
                         y: this.cellY,
                         image: imgURL,
-                        voice: base64Voice
+                        voice: base64Voice,
+                        description: description
                     };
                     const payloadString = JSON.stringify(payload);
                     fetch('http://localhost:3000/grid/cell', {
@@ -245,8 +273,17 @@ class EditCellComponent extends HTMLElement {
                         },
                         body: payloadString
                     }).then((response) => {
-                        console.log('Response:', response);
-                    });
+                        // popup
+                        // emit event to parent
+                        console.log('saving cell - response:', response);
+                        console.log("dispatching event 'cell-editing-finished'");
+                        this.dispatchEvent(new CustomEvent('cell-editing-finished', { bubbles: true }));
+
+                    }).catch((error) => {
+                        console.error('Error saving cell:', error);
+                    }
+                    );
+
                 };
             });
         };
@@ -257,6 +294,15 @@ class EditCellComponent extends HTMLElement {
             const drawing = this.shadowRoot.querySelector('isometric-drawing');
             drawing.setSize(300, 500);
         };
+    }
+
+    cancelEdit() {
+        
+        // go back to page1
+        this.setPage(1);
+        // emit event to parent 
+        this.dispatchEvent(new CustomEvent('cancel-editing-cell', { bubbles: true }));
+        
     }
 
     editCell(x, y) {

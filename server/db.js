@@ -18,6 +18,14 @@ db.on('error', console.error.bind(console, 'connection error:'));
 // x, y are integers and unique together and required
 
 
+const chatMessageSchema = new mongoose.Schema({
+    cell : { type: mongoose.Schema.Types.ObjectId, ref: 'GridCell' },
+    timestamp: { type: Date, default: Date.now },
+    message: String,
+    messageType: { type: String, enum: ['text', 'voice'], required: true },
+    user: String
+});
+
 const gridCellSchema = new mongoose.Schema({
     x: { type: Number, required: true },
     y: { type: Number, required: true },
@@ -25,11 +33,15 @@ const gridCellSchema = new mongoose.Schema({
     ambientSound: String,
     // voice is a blob new Blob(..., {type: 'audio/wav'});
     voice: String,
-    description: String
+    description: String,
+    chatMessages: [chatMessageSchema]
 });
 
 // model for grid cells
 const GridCell = mongoose.model('GridCell', gridCellSchema);
+const ChatMessage = mongoose.model('ChatMessage', chatMessageSchema);
 
-
-module.exports = { GridCell };
+module.exports = {
+    GridCell,
+    ChatMessage
+};

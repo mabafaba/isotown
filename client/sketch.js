@@ -75,7 +75,7 @@ function setup() {
     loadingDiv.id = 'loadingDiv';
     document.body.appendChild(loadingDiv);
 
-
+    
     
     createCanvas(windowWidth, windowHeight, WEBGL);
     Viewer = new Viewer();
@@ -98,9 +98,11 @@ function setup() {
                 if(!data.image) {
                     return;
                     }
-                var img = createImg(data.image,'drawing for cell');
+                // div not in the dom to hold image
+                var imagesdiv = document.createElement('div');
+                var thisimg = createImg(data.image,'drawing for cell').parent(imagesdiv);
                 // store image in cell
-                grid.cells[i][j].img = img;
+                grid.cells[i][j].img = thisimg;
 
                 }).catch((err) => {
                 console.error('fetch error', err);
@@ -116,7 +118,20 @@ function setup() {
                 // // remove this image from the array
                 // // imgs = imgs.filter((img) => img !== thisimg);
                 // }
-                grid.cells[i][j].description = 'This is cell ' + i + '/' + j;
+                // grid.cells[i][j].description = 'This is cell ' + i + '/' + j;
+                // fetch description
+                const descurl = "./grid/cell/" + i + "/" + j + "/description";
+                fetch(descurl).then((response) => {
+                    return response.json();
+                    }).then((data) => {
+                        if(!data.description) {
+                            grid.cells[i][j].description = 'This is cell ' + i + '/' + j;
+                            return;
+                            }
+                    grid.cells[i][j].description = data.description;
+                    }).catch((err) => {
+                    console.error('fetch error', err);
+                    });
             }
             // add random text as description
             
@@ -416,6 +431,8 @@ class Cell {
                 var speechBubbleX = leftX + (rightX - leftX) / 2;
                 var speechBubbleY = topY;
                 image(img_speech_bubble, speechBubbleX, speechBubbleY, speechBubbleWidth, speechBubbleHeight);
+                // display html element on top of canvas
+
                 // fade in speech bubble                
                 }
 
@@ -666,9 +683,9 @@ document.addEventListener('activeCellChange', (event) => {
     // shadow
     div.style.boxShadow = '5px 5px 5px black';
     // 20% of the screen width
-    div.style.width = '90%';
+    div.style.width = '20%';
     // 20% of the screen height
-    div.style.height = '10%';
+    div.style.height = '70%';
     div.style.zIndex = '1000';
     // tranparent
     div.style.opacity = '0.8';
@@ -942,3 +959,8 @@ audioMixer = new audioMixer();
 //         Viewer.zoomIn(0.1);
 //         }
 //     }
+
+// listen to active-cell-finished event
+document.addEventListener('activeCellFinished', (event) => {
+    console.log("start placing cell placing mode!");
+})

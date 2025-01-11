@@ -28,6 +28,7 @@ router.post('/grid/cell', async (req, res) => {
     const imageDimensions = imageManipulation.imageDimensionsFromImageURL(req.body.image);
     console.log('image dimensions: ', imageDimensions);
     if (!req.body.x || !req.body.y || !req.body.image) {
+        console.log('x', req.body.x, 'y', req.body.y, 'image', req.body.image);
         console.log('x, y, and image are required');
         res.status(400).send('x, y, and image are required');
         return;
@@ -158,6 +159,37 @@ router.post('/maskimage', async (req, res) => {
     const image = await imageManipulation.base64StringImageToCanvas(req.body.image);
     const maskedImage = imageManipulation.maskImage(mask, image);
     res.send(maskedImage);
+});
+
+
+// endpoint to add a chat message to a cell
+router.post('/grid/cell/:x/:y/chat', async (req, res) => {
+    try {
+        const cell = await db.GridCell.findOne({ x: req.params.x, y: req.params.y });
+        if (!cell) {
+            res.status(404).send('Cell not found');
+            return;
+        }
+        if(!req.body.message || !req.body.messageType || !req.body.user) {
+            res.status(400).send('message, messageType, and user are required');
+            return;
+        }
+        // check if messageType is valid
+        if (req.body.messageType !== 'text' && req.body.messageType !== 'voice') {
+            res.status(400).send('messageType must be "text" or "voice"');
+            return;
+        }
+        const newChatMessage = {
+            message: req.body.message,
+            messageType: req.body.messageType,
+            user: req.body.user
+        };
+        cell.chatMessages.push(newChatMessage);
+        await cell.save();
+        res.send(cell);
+    } catch (err) {
+        res.status(500).send(err);
+    }
 });
 
 module.exports = router;

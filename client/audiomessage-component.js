@@ -1,6 +1,6 @@
-class AudioRecorder extends HTMLElement {
+class AudioMessage extends HTMLElement {
 
-    constructor() {
+    constructor(base64StringAudio) {
         super();
         this.attachShadow({mode: 'open'});
         this.audioChunks = [];
@@ -8,11 +8,15 @@ class AudioRecorder extends HTMLElement {
         this.playing = false;
         this.audio = new Audio();
         this.visualisation = null;
+        this.base64StringAudio = base64StringAudio;
     }
 
     connectedCallback() {
         this.render();
         this.addEventListeners();
+        if (this.base64StringAudio) {
+            this.setAudioFromBase64String(this.base64StringAudio);
+        }
     }
 
     render() {
@@ -21,30 +25,28 @@ class AudioRecorder extends HTMLElement {
         <script src="https://unpkg.com/wavesurfer.js"></script>
             <style>
             .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: block;
+            justify-content: left;
+            height: 90px;
             gap: 10px;
+            border-radius: 45px;
+            width: 400px;
+            padding: 10px;
+            background-color:rgba(46, 122, 143, 0.35);
+            padding-top: 30px;
             }
 
-            .button-container {
-            display: flex;
-            gap: 10px;
-            }
+           
 
             button {
             padding: 10px;
             border: none;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
+            display: block;
             border-radius: 50%;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 90px;
-            height: 90px;
+            width: 50px;
+            height: 50px;
             }
 
             button:hover {
@@ -54,8 +56,8 @@ class AudioRecorder extends HTMLElement {
             }
 
             #waveformvisualisation {
-            width: 100%;
-            height: 100px;
+            width: 100px
+            height: 20px;
             }
 
             button.recording {
@@ -97,15 +99,43 @@ class AudioRecorder extends HTMLElement {
             color: white;
             display: none;
             }
+
+            table, td, tr {
+                border: 0;
+                margin: 0;
+                padding: 0;
+            }
+            table {
+
+                width: 100%;
+                
+
+            .button-container {
+            display: inline-block;
+            height:100%;
+            width: 20%;
+    }   
+            .wave-container {
+            display: inline-block;
+            height: 100%;
+            width: 75%;
+    }
             
             </style>
             <div class="container">
-            <div class="button-container">
-            <button id="record"><i class="fas fa-microphone"></i></button>
-            <button id="play" style="display: none;"><i class="fas fa-play"></i></button>
-            <button id="delete" style="display: none;"><i class="fas fa-trash"></i></button>
-            </div>
-            <div id="waveformvisualisation"></div>
+            <table>
+                <tr>
+                    <td class="button-container">
+                        <button id="record"><i class="fas fa-microphone"></i></button>
+                        <button id="play" style="display: none;"><i class="fas fa-play"></i></button>
+                        <button id="delete" style="display: none;"><i class="fas fa-trash"></i></button>
+                    </td>
+                    <td class="wave-container">
+                        <div id="waveformvisualisation"></div>
+                    </td>
+                </tr>
+            </table>
+            
             </div>
         `;
     }
@@ -162,6 +192,8 @@ class AudioRecorder extends HTMLElement {
         this.mediaRecorder.stop();
         // emit event
         this.dispatchEvent(new CustomEvent('recording-stopped', {detail: this.audioBlob}));
+        // hide record button
+        this.shadowRoot.querySelector('#record').style.display = 'none';
     }
 
     togglePlaying() {
@@ -203,13 +235,14 @@ class AudioRecorder extends HTMLElement {
         if (this.visualisation) {
             this.visualisation.destroy();
         }
-
         this.visualisation = WaveSurfer.create({
             container: this.shadowRoot.querySelector('#waveformvisualisation'),
-            waveColor: '#999999',
-            progressColor: '#CCCCCC',
+            waveColor: '#9999FF',
+            progressColor: '#000000',
             barWidth: 5,
-            mediaControls: false
+            height: 50, // Fixed height
+            mediaControls: false,
+            backgroundColor: '#2E7A8F' // Added background color
         });
 
         this.visualisation.loadBlob(this.audioBlob);
@@ -223,6 +256,16 @@ class AudioRecorder extends HTMLElement {
         return this.audioBlob;
     }
 
+    setAudioFromBase64String(base64String) {
+        this.audio.src = base64String;
+        this.audioBlob = base64String;
+        this.visualizeWaveform();
+        this.shadowRoot.querySelector('#play').style.display = 'block';
+        // hide record button
+        this.shadowRoot.querySelector('#record').style.display = 'none';
+    }
+
 }
 
-customElements.define('audio-recorder', AudioRecorder);
+customElements.define('audio-message', AudioMessage);
+
