@@ -27,20 +27,30 @@ router.post('/grid/cell', async (req, res) => {
     const imageArray = imageManipulation.base64stringImageToArray(req.body.image);
     const imageDimensions = imageManipulation.imageDimensionsFromImageURL(req.body.image);
     console.log('image dimensions: ', imageDimensions);
-    if (!req.body.x || !req.body.y || !req.body.image) {
+    if (req.body.x===undefined || req.body.y===undefined || !req.body.image) {
         console.log('x', req.body.x, 'y', req.body.y, 'image', req.body.image);
         console.log('x, y, and image are required');
         res.status(400).send('x, y, and image are required');
         return;
     }
+
+    // check if cell is already occupied
+    const existingCell = await db.GridCell.findOne({ x: req.body.x, y: req.body.y });
+    if (existingCell) {
+        console.log('cell already occupied: ', existingCell.x, "/", existingCell.y);
+        res.status(409).send('Cell already taken');
+        return;
+    }
+
+
+
     // try {
     console.log('start saving cell');
         const newCell = new db.GridCell(req.body);
         console.log('new cell ccreated: ', newCell);
-        await db.GridCell.deleteMany({ x: req.body.x, y: req.body.y });
         const cell = await newCell.save();
         console.log('cell created: ', cell.x, "/", cell.y);
-        res.send(cell);
+        res.status(201).send(cell);
     // } catch (err) {
     //     console.log(err);
     //     res.status(500).send(err);
@@ -91,6 +101,7 @@ router.get('/grid/cell/:x/:y', async (req, res) => {
         }
         res.send(cell);
     } catch (err) {
+        console.log('error', err);
         res.status(500).send(err);
     }
 });
@@ -99,6 +110,10 @@ router.get('/grid/cell/:x/:y', async (req, res) => {
 router.get('/grid/cell/:x/:y/:field', async (req, res) => {
     try {
         const cell = await db.GridCell.findOne({ x: req.params.x, y: req.params.y });
+        if (!cell) {
+            res.status(404).send('Cell not found');
+            return;
+        }
         const field = req.params.field;
         const value = cell[field];
         if (value) {
@@ -109,6 +124,7 @@ router.get('/grid/cell/:x/:y/:field', async (req, res) => {
             res.status(404).send('Field not found');
         }
     } catch (err) {
+        console.log('error', err);
         res.status(500).send(err);
     }
 });

@@ -13,6 +13,8 @@ class EditCellComponent extends HTMLElement {
         const template = document.createElement('template');
         template.innerHTML = `
             <style>
+                @import url('https://unpkg.com/sakura.css/css/sakura.css');
+
                 .container {
                     background-color: black;
                     color: white;
@@ -244,51 +246,71 @@ class EditCellComponent extends HTMLElement {
         this.shadowRoot.getElementById('nextButton').style.backgroundColor = '#4CAF50';
     }  
 
-    connectedCallback() {
-        
+    async getCell() {
 
-        const saveToDatabase = () => {
-            console.log('Saving to database cell:', this.cellX, this.cellY);
-
-            const voice = this.shadowRoot.querySelector('audio-recorder').getAudioBlob();
-            const description = this.shadowRoot.getElementById('cellDescription').value;
-
-            this.shadowRoot.querySelector('isometric-drawing').exportPNG().then((imgURL) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(voice);
-                reader.onloadend = () => {
-                    const base64Voice = reader.result;
-                    const payload = {
-                        x: this.cellX,
-                        y: this.cellY,
-                        image: imgURL,
-                        voice: base64Voice,
-                        description: description
-                    };
-                    const payloadString = JSON.stringify(payload);
-                    fetch('http://localhost:3000/grid/cell', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: payloadString
-                    }).then((response) => {
-                        // popup
-                        // emit event to parent
-                        console.log('saving cell - response:', response);
-                        console.log("dispatching event 'cell-editing-finished'");
-                        this.dispatchEvent(new CustomEvent('cell-editing-finished', { bubbles: true }));
-
-                    }).catch((error) => {
-                        console.error('Error saving cell:', error);
-                    }
-                    );
-
-                };
+        function readBlobAsDataUrl(blob){
+            return new Promise((resolve, reject) => {
+              var reader = new FileReader();  
+              reader.onloadend = () => {
+                resolve(reader.result)
+              };
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
             });
-        };
+          }
 
-        this.shadowRoot.getElementById('savedb').addEventListener('click', saveToDatabase);
+        
+        // make sure all components are ready
+        var voice = this.shadowRoot.querySelector('audio-recorder').getAudioBlob();
+        voice = await readBlobAsDataUrl(voice);
+        const description = this.shadowRoot.getElementById('cellDescription').value;
+        const imgURL = await this.shadowRoot.querySelector('isometric-drawing').exportPNG();
+        var imagesdiv = document.createElement('div');
+        var thisimg = createImg(imgURL,'drawing for cell').parent(imagesdiv);
+
+        const x = this.cellX;
+        const y = this.cellY;
+        if (!x || !y) {
+            // warning
+           console.warn('x or y not set');
+        }
+        if (!voice) {
+            // warning
+            console.warn('voice not set');
+        }
+        if(!description) {
+            // warning
+            console.warn('description not set');
+        }
+        if(!imgURL) {
+            // warning
+            console.warn('drawing (url) not set');
+        }
+        if(!thisimg) {
+            // warning
+            console.warn('drawing (img) not set');
+        }
+        return {
+            x: x,
+            y: y,
+            voice: voice,
+            description: description,
+            img: thisimg,
+            imgURL: imgURL
+        };
+    }
+
+
+    connectedCallback() {
+
+        this.shadowRoot.getElementById('savedb').addEventListener('click', 
+        async () => {
+            
+            // emit event to parent
+            const cell = await this.getCell();
+            this.dispatchEvent(new CustomEvent('cell-editing-finished', { bubbles: true }));
+        }
+        );
 
         window.onload = () => {
             const drawing = this.shadowRoot.querySelector('isometric-drawing');
@@ -300,6 +322,8 @@ class EditCellComponent extends HTMLElement {
         
         // go back to page1
         this.setPage(1);
+        // stop recording
+        this.shadowRoot.querySelector('audio-recorder').stopRecording();
         // emit event to parent 
         this.dispatchEvent(new CustomEvent('cancel-editing-cell', { bubbles: true }));
         

@@ -12,10 +12,17 @@ let grid, cam;
 let bounceBall;
 let audio1;
 let audios = [];
+
+let placeBuildingMode = true;
+let buildingToPlace = {
+    description: "asdf",
+    img: null
+}
 preload = () => {
 
 
-    // img1 = loadImage('http://localhost:3000/img/example001.png');
+    img1 = loadImage('https://picsum.photos/200');
+    buildingToPlace.img = img1;
     // img2 = loadImage('http://localhost:3000/img/example002.png');
     // img3 = loadImage('http://localhost:3000/img/example003.png');
     // img4 = loadImage('http://localhost:3000/img/example004.png');
@@ -92,10 +99,19 @@ function setup() {
             // fetch image from server
             const url = "./grid/cell/" + i + "/" + j + "/image";
             fetch(url).then((response) => {
+                // if 404, return
+                if(response.status === 404) {
+                    grid.cells[i][j].img = null;
+                    grid.cells[i][j].cellTaken = false;
+                    grid.cells[i][j].description = null;
+                    
+                    // do not follow through with then's
+                    throw new Error('404 cell not found');
+                    }
                 return response.json();
                 }).then((data) => {
 
-                if(!data.image) {
+                if(!data) {
                     return;
                     }
                 // div not in the dom to hold image
@@ -104,34 +120,16 @@ function setup() {
                 // store image in cell
                 grid.cells[i][j].img = thisimg;
 
+                grid.cells[i][j].cellTaken = true;
+
                 }).catch((err) => {
+                    // if 404 cell not found, return
+                    if(err.message === '404 cell not found') {
+                        return;
+                        }
                 console.error('fetch error', err);
                 })
 
-
-                // if(random() > 0.5 && imgs.length > 0) {
-                // // pick number from 0 to lenght of imgs - 1
-                // var randomPick = floor(random(imgs.length));
-                // grid.cells[i][j].img = imgs[randomPick];
-                // grid.cells[i][j].ambientAudio = audios[ randomPick];
-
-                // // remove this image from the array
-                // // imgs = imgs.filter((img) => img !== thisimg);
-                // }
-                // grid.cells[i][j].description = 'This is cell ' + i + '/' + j;
-                // fetch description
-                const descurl = "./grid/cell/" + i + "/" + j + "/description";
-                fetch(descurl).then((response) => {
-                    return response.json();
-                    }).then((data) => {
-                        if(!data.description) {
-                            grid.cells[i][j].description = 'This is cell ' + i + '/' + j;
-                            return;
-                            }
-                    grid.cells[i][j].description = data.description;
-                    }).catch((err) => {
-                    console.error('fetch error', err);
-                    });
             }
             // add random text as description
             
@@ -333,35 +331,58 @@ class Cell {
         var activeCell = grid.activeCell;
         var activeCellHasImg = activeCell.img ? true : false; 
         if (isActiveCell) {
-            bri += 100;
+            bri += 150;
+            // limit bri to 0 - 255
+            bri = constrain(bri, 0, 255);
+
+            alpha += 100;
+            // limit alpha to 0 - 255
+            alpha = constrain(alpha, 0, 255);
+
+            // placeBuilding mode and no image on active cell, make green
+            if(placeBuildingMode && !activeCellHasImg){
+                // green
+                hue = 100;
+                sat = 255;
+                bri = 200;
+                alpha = 255;
+            }
+
+            if(placeBuildingMode && this.img){
+                // green
+                hue = 0;
+                sat = 255;
+                bri = 200;
+                alpha = 255;
+            }
+             
             }
         // set color
 
         colorMode(HSB, 255);
         fill(hue, sat, bri, alpha);
-
-
-        // if this cell is the center cell, draw a red border
-        if (this.i == grid.activeCell.i && this.j == grid.activeCell.j) {
-            stroke(255);
-            strokeWeight(3);
-            } else {
-            // black border
-            stroke(0);
-            strokeWeight(5);
-
-            }
         noStroke();
+
+        
+
+
+        // // if this cell is the center cell, draw a red border
+        // if (this.i == grid.activeCell.i && this.j == grid.activeCell.j) {
+        //     stroke(255);
+        //     strokeWeight(3);
+        //     } else {
+        //     // black border
+        //     stroke(0);
+        //     strokeWeight(5);
+
+        //     }
+        // noStroke();
         
         var shapeTop = - this.height / 2;
         var shapeBottom = this.height / 2;
         var shapeLeft = - this.width / 2;
         var shapeRight = this.width / 2;
         var shapeCenter = 0;
-            if(this.img) {
-        // texture(this.img);
-        // rect(shapeLeft, shapeTop, this.width, this.height);
-            }
           
         beginShape();
         vertex(shapeLeft+5, shapeCenter);
@@ -374,8 +395,18 @@ class Cell {
         fill(255);
         noStroke();
         // display image. bottom center point of image should be at bottom point of shape
+        
+        // an image is shown if one of these:
+        
+        var img = this.img;
 
-        if (this.img) {
+        // if this.img is empty, and we are in activeBuildingMode, and it's the active cell, THEN show alternative image
+        if(!this.img && isActiveCell && placeBuildingMode){
+            img =  buildingToPlace.img
+        }
+
+        if (img){
+            
             var margin = 0.15;
 
             var leftX = -this.width / 2;
@@ -387,16 +418,12 @@ class Cell {
 
 
             var bottomY = (this.height / 2) - (this.height * margin);
-            var imageRatio = this.img.width / this.img.height;
+            var imageRatio = img.width / img.height;
             var imageHeightFromRatio = (rightX-leftX) / imageRatio;
             var imageWidth = this.width * (1 - 2 * margin);
             var topY = bottomY - imageHeightFromRatio;
 
             var margin = 0.5;
-
-
-
-
 
             // var alpha = map(this.dxistanceToActiveCell(), 0, 10 * this.width, 255, 0);
             // tint(alpha, alpha);
@@ -412,9 +439,21 @@ class Cell {
                 fill(0, 0, 0
                     );
                 }
+            if(isActiveCell && !activeCellHasImg && placeBuildingMode){
+                // tint green
+                colorMode(RGB);
+                tint(0, 255, 0, 255);
+
+            }
+
+            if(placeBuildingMode && activeCellHasImg){
+                // tint red
+                colorMode(RGB);
+                tint(255, 0, 0, 255);
+            }
 
         
-            texture(this.img);
+            texture(img);
             rect(leftX, topY, imageWidth, imageHeightFromRatio);
             // make 10% smaller than cell
             // var margin = 1;
@@ -452,147 +491,8 @@ class Cell {
     }
 
 
-// class for camera
-
-class Viewer {
-    constructor() {
-        this.x = 0;
-        this.y = 0;
-        this.targetX = 0;
-        this.targetY = 0;
-        this.speed = 0.1;
-        this.zoom = 1;
-        this.targetZoom = 1;
-        this.zoonSpeed = 0.05;
-        }
-
-    move(dx, dy) {
-        this.x += dx
-        this.y += dy;
-        }
-    
-    moveTo(x, y) {
-        this.targetX = x;
-        this.targetY = y;
-        }
-    jumpTo(x, y) {
-        this.x = x;
-        this.y = y;
-        }
-
-    update() {
-
-        if (abs(this.targetX - this.x) > 1) {
-        this.x += (this.targetX - this.x) * this.speed;
-        }
-        if (abs(this.targetY - this.y) > 1) {
-            this.y += (this.targetY - this.y) * this.speed;
-        }
-        this.zoom += (this.targetZoom - this.zoom) * this.zoonSpeed;
-        }
-    zoomIn(amount=1) {
-        // stop event propagation
-        event.stopPropagation();
-        this.targetZoom *= 1 + (0.2 * amount);
-    }
-    zoomOut(amount=1) {
-        // stop event propagation
-        event.stopPropagation();
-        this.targetZoom *= 1 - (0.2*amount);
-    }
-    view() {
-        this.update();
-        scale(this.zoom);
-
-        translate(width/2, height/2);
-        translate(-this.x, -this.y);
-        // zoom
-        
-        
-    
-        }     
-    
-}
 
 
-// // camera to take pictures with user camera
-// // code:
-// class Cam {
-//     constructor() {
-//         this.showStream = false;
-//         this.showLastImage = false;
-//         this.video = createCapture(VIDEO);
-//         // video size as window size
-//         this.video.size(300, 300);
-//         this.video.hide();
-//         this.photos = [];
-//         }
-
-//     display() {
-//         if(this.showStream){
-//         image(this.video, 0, 0, 300, 300);
-//         }
-//         if(this.showLastImage) {
-//             if(this.photos.length === 0) {return}
-//             image(this.photos[this.photos.length-1], 0, 0,300, 300);
-//         }
-
-
-
-
-//         }
-
-//     // begin taking
-
-//     showStream() {
-//         this.showStream = true;
-//         this.showLastImage = false;
-//         }
-
-//     hideStream() {
-//         this.showStream = false;
-//         }
-
-//     toggleStream() {
-//         this.showStream = !this.showStream;
-//         }
-
-//     showFotos() {
-//         this.showLastImage = true;
-//         }
-    
-//     hideFotos() {
-//         this.showLastImage = false;
-//         }
-    
-//     toggleFotos() {
-//         this.showLastImage = !this.showLastImage;
-//         }
-
-//     hideCam() {
-//         this.hideStream();
-//         this.hideFotos();
-//         }
-    
-//     showCam() {
-//         this.showStream();
-//         this.hideFotos();
-//         }
-
-//     toggleCam() {
-//         this.toggleStream();
-//         this.toggleFotos();
-//         }
-
-//     // click
-
-//     takePhoto() {
-//         this.photos.push(this.video.get());
-//         this.hideStream();
-//         this.showFotos();
-//         }
-
-// }
 
 
 // use arrows to move the grid
@@ -660,6 +560,47 @@ emitActiveCellChangeEvent = () => {
 
     }
 
+function updateCell(i, j){
+    // fetch all cell details
+    fetch("./grid/cell/" + i + "/" + j).then((response) => {
+        // check status
+        if(response.status === 404) {
+            throw new Error('404 cell not found');
+            }
+        return response.json();
+        }).then((data) => {
+        // log cell data
+        // update all cell data
+       const cell = {
+            description: data.description,
+            voice: data.voice,
+            img: data.image
+
+       }
+        // image
+        if(data.image) {
+            var imagesdiv = document.createElement('div');
+            var thisimg = createImg(data.image, 'drawing for cell').parent(imagesdiv);
+            grid.cells[i][j].img = thisimg;
+            }
+
+        if(data.voice) {
+            grid.cells[i][j].voice = data.voice;
+            }
+
+        if(data.description) {
+            grid.cells[i][j].description = data.description;
+            }
+        
+        }).catch((err) => {
+            if(err.message === '404 cell not found') {
+                return;
+                }
+        console.error('fetch error', err);
+        });
+    
+}
+
 // listen 
 document.addEventListener('activeCellChange', (event) => {
     // set ball target to active cell position
@@ -670,6 +611,41 @@ document.addEventListener('activeCellChange', (event) => {
         div.parentNode.removeChild(div);
         }
 
+    // fetch all cell details
+    fetch("./grid/cell/" + event.detail.cell.i + "/" + event.detail.cell.j).then((response) => {
+        // check status
+        if(response.status === 404) {
+            throw new Error('404 cell not found');
+            }
+        return response.json();
+        }).then((data) => {
+        // log cell data
+        // update all cell data
+        event.detail.cell.description = data.description;
+        event.detail.cell.voice = data.voice;
+        // image
+        if(data.image) {
+            var imagesdiv = document.createElement('div');
+            var thisimg = createImg(data.image, 'drawing for cell').parent(imagesdiv);
+            event.detail.cell.img = thisimg;
+            }
+
+        // create div with cell chat
+        createCellChatDiv(event.detail.cell);
+        }).catch((err) => {
+            if(err.message === '404 cell not found') {
+                return;
+                }
+        console.error('fetch error', err);
+        });
+
+
+    });
+
+
+
+createCellChatDiv = (cell) => {
+
     // create div on top right corner with cell coordinates
     var div = document.createElement('div');
     div.id = 'activeCellDiv';
@@ -678,7 +654,7 @@ document.addEventListener('activeCellChange', (event) => {
     div.style.left = '2.5%';
     div.style.color = 'white';
     div.style.backgroundColor = 'gray';
-    div.style.padding = '10px';
+    div.style.padding = '0px';
     div.style.borderRadius = '10px';
     // shadow
     div.style.boxShadow = '5px 5px 5px black';
@@ -691,276 +667,65 @@ document.addEventListener('activeCellChange', (event) => {
     div.style.opacity = '0.8';
     // make sure content stays within div
     div.style.overflow = 'auto';
-    div.innerHTML = event.detail.cell.i + "/" + event.detail.cell.j;
-    // append cell description to div
-    div.innerHTML += '<br>' + event.detail.cell.description;
+
+    // append div to body
     document.body.appendChild(div);
 
-    // fade out all audio starting with 'cellsound'
-    audioMixer.fadeOutMany('ambient*');
+    const existingMessagesDiv = document.createElement('div');
+    existingMessagesDiv.id = 'existingMessagesDiv';
+    // 60 percent height, from top
+    existingMessagesDiv.style.height = '60%';
+    // 100% width
+    existingMessagesDiv.style.width = '100%';
+    
+    div.appendChild(existingMessagesDiv);
 
-    // play ambientAudio for active cell
-    if(!event.detail.cell.ambientAudio) {
-        fetch("./grid/cell/" + event.detail.cell.i + "/" + event.detail.cell.j + "/ambientAudio").then((response) => {
-            return response.json();
-            }).then((data) => {
-            var audio = new Audio(data.ambientAudio);
-            event.detail.cell.ambientAudio = audio;
-            // play audio
-            audioMixer.fadeIn('cellsound-ambient-' + event.detail.cell.i + "-" + event.detail.cell.j, audio);
-            }).catch((err) => {
-            console.error('fetch error', err);
-            });
+
+
+    // append cell description as <text-message>
+    if(cell.description) {
+    var textMessage = document.createElement('text-message');
+    textMessage.setAttribute('message', cell.description);
+    existingMessagesDiv.appendChild(textMessage);
     }
-    if(event.detail.cell.ambientAudio) {
-        audioMixer.fadeIn('cellsound-ambient-' + event.detail.cell.i + "-" + event.detail.cell.j, event.detail.cell.ambientAudio);
-    }
-
-    // fetch audio for active cell
-    if(!event.detail.cell.voice) {
-    const url = "./grid/cell/" + event.detail.cell.i + "/" + event.detail.cell.j + "/voice";
-    fetch(url).then((response) => {
-        return response.json();
-        }).then((data) => {
-        var audio = new Audio(data.voice);
-        event.detail.cell.voice = audio;
-        // add audio controls to div
-        var audioControls = document.createElement('audio');
-        audioControls.controls = true;
-        audioControls.src = data.voice;
-        div.appendChild(audioControls);
-        // play audio after 1 second
-        setTimeout(() => {
-            audioControls.play();
-            }, 1000);
-
-        }).catch((err) => {
-        console.error('fetch error', err);
-        })
-    } else {
-        var audioControls = document.createElement('audio');
-        audioControls.controls = true;
-        audioControls.src = data.voice;
-        div.appendChild(audioControls);
-        // play audio after 1 sec
-        setTimeout(() => {
-            audioControls.play();
-            
-            // audioMixer.fadeIn('cellsound' + event.detail.cell.i + "-" + event.detail.cell.j, event.detail.cell.voice);
-        }, 1000);
+    
+    // create an <audio-message> element
+    
+    var audioMessage = document.createElement('audio-message');
+    existingMessagesDiv.appendChild(audioMessage);
+    
+    if(cell.voice) {
+        console.log('cell.voice', cell.voice);
+        audioMessage.setAudioFromBase64String(cell.voice, true, 1000);
+        }else{
+            // rmemove audio message
+            audioMessage.parentNode.removeChild(audioMessage);
         }
-    });
-
-
-// bouncy ball class
-
-class BouncyBall {
-
-    constructor(x, y, radius) {
-        this.floorPoint = createVector(x, y);
-        this.position = createVector(x, y-(radius/2)-10);
-        this.radius = radius;
-        this.target = createVector(x, y);
-        this.bounceSpeed = 0.2;
-        this.bounceHeight = 20;
-        this.speed = createVector(0, 0);
-        }
-
-    display() {
-        fill(255,0,0,100);
-        noStroke();
-        // above floor point
-        // this.debugDisplay();
-        ellipse(this.position.x, this.position.y, this.radius, this.radius);
-        }
-
-    debugDisplay() {
-        // draw line from position to target red
-        stroke(255, 0, 0);
-        line(this.position.x, this.position.y, this.target.x, this.target.y);
-
-        // draw acceleration vector green
-        stroke(0, 255, 0);
-        line(this.position.x, this.position.y, this.position.x + this.speed.x * 10, this.position.y + this.speed.y * 10);
-
-        // blue line from floor point to position
-        stroke(0, 0, 255);
-        line(this.floorPoint.x, this.floorPoint.y, this.position.x, this.position.y);
-        
-        }   
-
-    moveTowardsTarget() {
-        // accelerate in direction of target
-        var acceleration = p5.Vector.sub(this.target, this.floorPoint);
-        acceleration.mult(0.01);
-        // limit acceleration
-        acceleration.limit(0.5);
-        this.speed.add(acceleration);
-        // limit speed
-        this.speed.limit(10);
-        }
-    bounce (){
-        // accelerate downwards
-        this.bounceSpeed -= 0.2;       
-        this.bounceHeight += this.bounceSpeed; 
-        // if we are below the floor, bounce back up
-        if (this.bounceHeight<0) {
-            this.bounceSpeed *= -1;
-            this.bounceHeight = 0;
-        }
-    }
-
-    update() {
-        this.moveTowardsTarget();
-        this.bounce();
-        this.floorPoint.add(this.speed);
-        this.position = createVector(this.floorPoint.x, this.floorPoint.y - this.bounceHeight);
-        this.speed.mult(0.95);
-
-        }
-       
-    }
+    
 
 
 
-class audioMixer {
-    constructor() {
-        this.audios = {};
-        }
+    // create an audio-recorder element
+    var audioRecorder = document.createElement('audio-recorder');
+    // move to bottom
+    audioRecorder.style.position = 'absolute';
+    audioRecorder.style.bottom = '0';
+    // 100% width
+    audioRecorder.style.width = '100%';
 
-    play(channel, audio = null){
-        if(audio) {
-        this.audios[channel] = audio;
-        this.audios[channel].play();
-        return;    
-        }
+    // append audio-recorder to div
+    existingMessagesDiv.appendChild(audioRecorder);
 
-        if(!this.audio[channel]) {
-            console.warn('no audio for channel', channel);
-            return;
-            }
-
-        if(channel) {
-            this.audios[channel].play();
-            }
-    }
-
-    stop(channel) {
-        if(this.audios[channel]) {
-            this.audios[channel].pause();
-            }
-        }
-
-    stopAll() {
-        for (const channel in this.audios) {
-            this.audios[channel].pause();
-            }
-        }
-
-    fadeOut(channel, duration=1000, callback=null) {
-        if(this.audios[channel]) {
-           // fade volumen to 0 then stop
-            var volume = this.audios[channel].volume;
-            var step = 100 * volume / duration;
-            var interval = setInterval(() => {
-                volume -= step;
-                if(volume <= 0) {
-                    clearInterval(interval);
-                    this.audios[channel].pause();
-                    // delete channel
-                    delete this.audios[channel];
-                    if(callback) {
-                        callback();
-                        }
-                    return;
-                    }
-
-                this.audios[channel].volume = volume;
-
-                }, 100);
-            }
-        }
-
-    fadeIn(channel, audio = null, duration=1000, callback=null) {
-
-        if(audio) {
-            this.audios[channel] = audio;
-            }
-
-        if(!this.audios[channel]) {
-            console.warn('no audio for channel', channel);
-            return;
-            }
-
-        // set volume to 0
-        this.audios[channel].volume = 0;
-
-        this.audios[channel].play();
-
-        // fade volumen to 1
-
-        var volume = 0;
-        var step = 100 / duration;
-        var interval = setInterval(() => {
-            volume += step;
-            if(volume >= 1) {
-                clearInterval(interval);
-                if(callback) {
-                    callback();
-                    }
-                return;
-                }
-                this.audios[channel].volume = volume;
-
-            }, 100);        
-        
-        }
-
-        fadeOutMany(regexp="*", duration=1000, callback=null) {
-            for (const channel in this.audios) {
-                if(channel.match(regexp)) {
-                    this.fadeOut(channel, duration, callback);
-                    }
-                }
-            }
-
-        fadeInMany(regexp="*", duration=1000, callback=null) {
-            for (const channel in this.audios) {
-                if(channel.match(regexp)) {
-                    this.fadeIn(channel, null, duration, callback);
-                    }
-                }
-            }
+    return div;
+}
 
 
-        // convert {"type":"Buffer","data":[... to audio that can be used with audiomixer.play etc.
-        audioToBlob(audio) {
-            return new Blob(audio.data, {type: 'audio/wav'});
-            }
-
-        blobToAudio(blob) {
-            return new Audio(URL.createObjectURL(blob));
-            }
-        
-        
-
-
-    }
-
-audioMixer = new audioMixer();
-
-
-// // on scroll, zoom in or out
-// function mouseWheel(event) {
-//     if (event.delta > 0) {
-//         Viewer.zoomOut(0.1);
-//         }
-//     if (event.delta < 0) {
-//         Viewer.zoomIn(0.1);
-//         }
-//     }
 
 // listen to active-cell-finished event
 document.addEventListener('activeCellFinished', (event) => {
     console.log("start placing cell placing mode!");
 })
+
+
+
+

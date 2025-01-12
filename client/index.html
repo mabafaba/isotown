@@ -8,6 +8,11 @@
     <!-- pixelspeechbubbles.css -->
     <link rel="stylesheet" href="pixelspeechbubbles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+
+
+    <!-- sketch dependencies -->
+    <script src="p5viewerclass.js"></script>
+    <script src="bouncyBallClass.js"></script>
     <script src="sketch.js" defer></script>
     <!-- intro.js -->
     <link href="https://unpkg.com/intro.js/minified/introjs.min.css" rel="stylesheet">
@@ -16,7 +21,9 @@
     <script src="intro-to-index.js" defer></script>
     <!-- import editcellComponent as module -->
     <script type="module" src="./editcellComponent.js"></script>
-
+<!-- audiomessage-componen.js -->
+    <script src="audiomessage-component.js"></script>
+    <script src="textmessage-component.js"></script>
     <!-- wavesurver v7 -->
     <script src="https://unpkg.com/wavesurfer.js"></script>
     <!-- fontawesome -->
@@ -113,6 +120,19 @@
             background-color: rgb(255, 255, 0) !important;
         }
 
+        .confirmcellaction{
+            background-color:  rgb(28, 227, 117) !important;
+        }
+
+        .confirmcellaction:hover {
+            background-color:  rgb(17, 160, 81) !important;
+        }
+        .hidden {
+            display: none;
+        }
+
+
+
         #gamecancelactionbutton {
             display: none;
             background-color: lightcoral !important;
@@ -186,9 +206,15 @@
         </table>
 
     </div>
-    <div class="roundbutton leavenoteaction" id="gameleavenotebutton">
+    <div class="roundbutton leavenoteaction hidden" id="gameleavenotebutton">
         <!-- font awesome 'comment' icon -->
         <i class="fas fa-comment"></i>
+    </div>
+
+    <!-- confirmactionbutton -->
+    <div class="roundbutton confirmcellaction hidden" id="gameconfirmactionbutton">
+        <!-- font awesome 'check' icon -->
+        <i class="fas fa-check"></i>
     </div>
 
 </div>
@@ -299,15 +325,62 @@
     });
 
     // listen for cell-editing-finished
-    document.addEventListener('cell-editing-finished', () => {
+    document.addEventListener('cell-editing-finished', async () => {
         console.log('cell-editing-finished event received');
+        const cellEditor = document.querySelector('cell-editor');
+        const cell = await cellEditor.getCell();
+        startSelectCellToBuildMode(cell);
         closeAddCellDialog();
+        
     });
 
     // leave a cookie so we know the user has been here before
 
+    confirmPlacingCell = async function () {
+        if(!placeBuildingMode) {
+            console.error('Not in place building mode');
+            return;
+        }
+        if(!buildingToPlace) {
+            console.error('No building to place');
+            return;
+        }
 
-    startSelectCellToBuildMode = () => {
+        var cell = buildingToPlace;
+        // get active cell 
+        cell.i = grid.activeCell.i;
+        cell.j = grid.activeCell.j;
+        console.log('Placing cell:', cell);
+        saveCellToDatabase(cell).then(response => {
+            // if 409 conflict, alert user
+            if(response.status === 409) {
+                alert('Sorry, someone built something here just this second... please choose another place.');
+                return;
+            }
+            if(response.status !== 201) {
+                console.error('Error saving cell:', response);
+                return;
+            }
+            if(response.status === 201) {
+                console.log('Cell saved successfully');
+                stopSelectCellToBuildMode();
+            }
+
+            // in any case, pull the updated cell data from the server
+            updateCell(cell.i, cell.j);
+
+            
+        }).catch(error => {
+            console.error('Error saving cell:', error);
+        });
+
+
+    }
+
+
+    startSelectCellToBuildMode = (cell) => {
+        buildingToPlace = cell; // global from sketch.js
+        placeBuildingMode = true; // global from sketch.js
         // hide add cell action button
         const primaryActionButton = document.getElementById('gameprimaryactionbutton');
         primaryActionButton.style.display = 'none';
@@ -317,7 +390,20 @@
 
         // show gamecancelactionbutton
         const cancelActionButton = document.getElementById('gamecancelactionbutton');
-        cancelActionButton.style.display = 'block';
+        cancelActionButton.style.display = 'flex';
+
+        // show confirm action button
+        const confirmActionButton = document.getElementById('gameconfirmactionbutton');
+        // remove .hidden class
+        confirmActionButton.classList.remove('hidden');
+
+        confirmActionButton.addEventListener('click', () => {
+            // stop event propagation
+            event.stopPropagation();
+            confirmPlacingCell();
+        });
+
+
         cancelActionButton.addEventListener('click', () => {
             // stop event propagation
             event.stopPropagation();
@@ -326,19 +412,71 @@
 
 
     }
+
+    
     
     stopSelectCellToBuildMode = () => {
+        buildingToPlace = null; // global from sketch.js
+        placeBuildingMode = false; // global from sketch.js
         // show add cell action button
         const primaryActionButton = document.getElementById('gameprimaryactionbutton');
-        primaryActionButton.style.display = 'block';
+        primaryActionButton.style.display = 'flex';
         // show leave note action button
         const leaveNoteButton = document.getElementById('gameleavenotebutton');
-        leaveNoteButton.style.display = 'block';
+        leaveNoteButton.style.display = 'flex';
 
         // hide gamecancelactionbutton
         const cancelActionButton = document.getElementById('gamecancelactionbutton');
         cancelActionButton.style.display = 'none';
+
+        const confirmActionButton = document.getElementById('gameconfirmactionbutton');
+        confirmActionButton.classList.add('hidden');
     }
+
+
+const saveCellToDatabase = async function (cell) {
+    console.log('cell:', cell);
+    console.log('Saving to database cell:', cell.i, cell.j);
+
+    if (cell.i === undefined || cell.j === undefined) {
+        console.error('i or j not set');
+        return false;
+    }
+    // get description
+    if (!cell.description) {
+        console.error('No text message found');
+        return false;
+    }
+    if(!cell.voice) {
+        console.error('No voice message found');
+        return false;
+    }
+    
+    if(!cell.imgURL) {
+        console.error('No image found');
+        return false;
+    }
+
+    const payload = {
+        x: cell.i,
+        y: cell.j,
+        image: cell.imgURL,
+        voice: cell.voice,
+        description: cell.description
+    };
+
+    const payloadString = JSON.stringify(payload);
+    return fetch('http://localhost:3000/grid/cell', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: payloadString
+    });
+
+    }
+
+    
 
 </script>
 </html>

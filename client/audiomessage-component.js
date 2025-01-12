@@ -1,22 +1,19 @@
 class AudioMessage extends HTMLElement {
 
-    constructor(base64StringAudio) {
+    constructor() {
         super();
         this.attachShadow({mode: 'open'});
         this.audioChunks = [];
-        this.recording = false;
         this.playing = false;
         this.audio = new Audio();
         this.visualisation = null;
-        this.base64StringAudio = base64StringAudio;
+        this.audioBlob = null;
     }
 
     connectedCallback() {
         this.render();
         this.addEventListeners();
-        if (this.base64StringAudio) {
-            this.setAudioFromBase64String(this.base64StringAudio);
-        }
+
     }
 
     render() {
@@ -30,7 +27,9 @@ class AudioMessage extends HTMLElement {
             height: 90px;
             gap: 10px;
             border-radius: 45px;
-            width: 400px;
+            width: 80%;
+            margin-left: 5%;
+            margin-right: 5%;
             padding: 10px;
             background-color:rgba(46, 122, 143, 0.35);
             padding-top: 30px;
@@ -56,15 +55,11 @@ class AudioMessage extends HTMLElement {
             }
 
             #waveformvisualisation {
-            width: 100px
+            width: 100%;
             height: 20px;
             }
 
-            button.recording {
-            background-color: red;
-            color: white;
-            animation: pulsate 1s infinite;
-            }
+            
 
             @keyframes pulsate {
             0% {
@@ -84,9 +79,9 @@ class AudioMessage extends HTMLElement {
             i {
             font-size: 24px;
             }
-            button#record {
-            background-color: #ff4d4d;
-            color: white;
+ 
+            .pulsate {
+            animation: pulsate 1s infinite;
             }
 
             button#play {
@@ -126,7 +121,6 @@ class AudioMessage extends HTMLElement {
             <table>
                 <tr>
                     <td class="button-container">
-                        <button id="record"><i class="fas fa-microphone"></i></button>
                         <button id="play" style="display: none;"><i class="fas fa-play"></i></button>
                         <button id="delete" style="display: none;"><i class="fas fa-trash"></i></button>
                     </td>
@@ -141,61 +135,10 @@ class AudioMessage extends HTMLElement {
     }
 
     addEventListeners() {
-        this.shadowRoot.querySelector('#record').addEventListener('click', this.toggleRecording.bind(this));
         this.shadowRoot.querySelector('#play').addEventListener('click', this.togglePlaying.bind(this));
-        this.shadowRoot.querySelector('#delete').addEventListener('click', this.deleteRecording.bind(this));
     }
 
-    toggleRecording() {
-        if (this.recording) {
-            this.stopRecording();
-        } else {
-            this.startRecording();
-        }
-    }
-
-    startRecording() {
-        this.audioChunks = [];
-        this.recording = true;
-        this.audioBlob = null;
-        this.audio.src = '';
-        if (this.visualisation) {
-            this.visualisation.destroy();
-        }
-
-        this.shadowRoot.querySelector('#record').innerHTML = '<i class="fas fa-stop"></i>';
-        this.shadowRoot.querySelector('#play').style.display = 'none';
-        this.shadowRoot.querySelector('#delete').style.display = 'none';
-        this.shadowRoot.querySelector('#record').classList.add('recording');
-
-        navigator.mediaDevices.getUserMedia({audio: true})
-            .then(stream => {
-                this.mediaRecorder = new MediaRecorder(stream);
-                this.mediaRecorder.ondataavailable = event => {
-                    this.audioChunks.push(event.data);
-                };
-                this.mediaRecorder.onstop = () => {
-                    this.audioBlob = new Blob(this.audioChunks, {type: 'audio/wav'});
-                    this.audio.src = URL.createObjectURL(this.audioBlob);
-                    this.shadowRoot.querySelector('#play').style.display = 'block';
-                    // this.shadowRoot.querySelector('#delete').style.display = 'block';
-                    this.visualizeWaveform();
-                };
-                this.mediaRecorder.start();
-            });
-    }
-
-    stopRecording() {
-        this.recording = false;
-        this.shadowRoot.querySelector('#record').innerHTML = '<i class="fas fa-microphone"></i>';
-        this.shadowRoot.querySelector('#record').classList.remove('recording');
-        this.mediaRecorder.stop();
-        // emit event
-        this.dispatchEvent(new CustomEvent('recording-stopped', {detail: this.audioBlob}));
-        // hide record button
-        this.shadowRoot.querySelector('#record').style.display = 'none';
-    }
-
+   
     togglePlaying() {
         if (this.playing) {
             this.pausePlaying();
@@ -212,6 +155,8 @@ class AudioMessage extends HTMLElement {
             this.playing = false;
             this.shadowRoot.querySelector('#play').innerHTML = '<i class="fas fa-play"></i>';
         });
+        // pulse the play button
+        
     }
 
     pausePlaying() {
@@ -220,16 +165,7 @@ class AudioMessage extends HTMLElement {
         this.visualisation.pause();
     }
 
-    deleteRecording() {
-        this.audioChunks = [];
-        this.audioBlob = null;
-        this.audio.src = '';
-        if (this.visualisation) {
-            this.visualisation.destroy();
-        }
-        this.shadowRoot.querySelector('#play').style.display = 'none';
-        this.shadowRoot.querySelector('#delete').style.display = 'none';
-    }
+   
 
     visualizeWaveform() {
         if (this.visualisation) {
@@ -256,13 +192,58 @@ class AudioMessage extends HTMLElement {
         return this.audioBlob;
     }
 
-    setAudioFromBase64String(base64String) {
+    setAudioFromBase64String(base64String, autoplay = false, delayAutoplay = 0) {
         this.audio.src = base64String;
-        this.audioBlob = base64String;
-        this.visualizeWaveform();
-        this.shadowRoot.querySelector('#play').style.display = 'block';
-        // hide record button
-        this.shadowRoot.querySelector('#record').style.display = 'none';
+        // convert to blob 
+
+        this.audioBlob = this.base64toAudioBlob(base64String);
+        
+
+        const playbutton = this.shadowRoot.querySelector('#play')
+        if(playbutton){
+            playbutton.style.display = 'block';
+        }
+        if (this.visualisation) {
+            this.visualisation.destroy();
+        }
+        this.visualisation = WaveSurfer.create({
+            container: this.shadowRoot.querySelector('#waveformvisualisation'),
+            waveColor: '#9999FF',
+            progressColor: '#000000',
+            barWidth: 5,
+            height: 50, // Fixed height
+            mediaControls: false,
+            backgroundColor: '#2E7A8F' // Added background color
+        });
+
+        this.visualisation.loadBlob(this.audioBlob);
+
+        this.visualisation.on('ready', () => {
+            this.visualisation.zoom(0);
+        });
+
+        if (autoplay) {
+            setTimeout(() => {
+                this.startPlaying();
+            }, delayAutoplay);
+        }
+
+
+    }
+
+
+    base64toAudioBlob(base64) {
+        var base64dataOnly = base64.split(',')[1];
+        var binaryString = atob(base64dataOnly);
+        var bytes = new Uint8Array(binaryString.length);
+        for (var i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return new Blob([bytes.buffer], {type: 'audio/wav'});
+    }
+
+    hasAudio() {
+        return this.audioBlob !== null;
     }
 
 }

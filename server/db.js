@@ -12,7 +12,6 @@ db.on('error', console.error.bind(console, 'connection error:'));
 // x/y
 // image url
 // svg url
-// ambient sound
 // voice 
 // description
 // x, y are integers and unique together and required
@@ -30,7 +29,6 @@ const gridCellSchema = new mongoose.Schema({
     x: { type: Number, required: true },
     y: { type: Number, required: true },
     image: String,
-    ambientSound: String,
     // voice is a blob new Blob(..., {type: 'audio/wav'});
     voice: String,
     description: String,
