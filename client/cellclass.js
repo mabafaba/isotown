@@ -1,3 +1,5 @@
+let tempImage = null;
+let tempImageDiv;
 
 class Cell {
     constructor(i, j, width, height) {
@@ -33,7 +35,7 @@ class Cell {
 
     display() {
         // only show if distance to active cell is less than 3 cells
-        if (this.distanceToActiveCell() > 1500) {
+        if (this.distanceToActiveCell() > 700) {
             return;
             }
         push();
@@ -128,15 +130,16 @@ class Cell {
         // white text
         fill(255);
         noStroke();
-        // display image. bottom center point of image should be at bottom point of shape
         
-        // an image is shown if one of these:
         
         var img = this.img;
 
         // if this.img is empty, and we are in activeBuildingMode, and it's the active cell, THEN show alternative image
         if(!this.img && isActiveCell && placeBuildingMode){
-            img =  buildingToPlace.img
+            tempImageDiv = document.getElementById('temp-image-holder');
+            // empty tempImageDiv
+            tempImageDiv.innerHTML = '';
+            img = createImg(buildingToPlace.imgURL, 'placeholder image').parent(tempImageDiv);
         }
 
         if (img){
@@ -186,7 +189,8 @@ class Cell {
                 tint(255, 0, 0, 255);
             }
 
-        
+            // console.log('activeCellHasImg', activeCellHasImg);
+            // console.log('img', img);
             texture(img);
             rect(leftX, topY, imageWidth, imageHeightFromRatio);
             // make 10% smaller than cell

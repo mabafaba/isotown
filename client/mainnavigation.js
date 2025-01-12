@@ -68,6 +68,30 @@ class GameControls extends HTMLElement {
                     background-color: rgb(17, 160, 81) !important;
                 }
 
+                #forwardbutton {
+                    background-color: rgb(0, 255, 98) !important;
+                }
+
+                #forwardbutton:hover {
+                    background-color: rgb(1, 152, 59) !important;
+                }
+
+                #backwardbutton {
+                    background-color: rgb(255, 193, 7) !important;
+                }
+
+                #backwardbutton:hover {
+                    background-color: rgb(204, 153, 0) !important;
+                }
+
+                .movearrow {
+                    cursor: pointer;
+                }
+
+                .movearrow:hover img {
+                    filter: invert(1);
+                }
+
                 .hidden {
                     display: none;
                 }
@@ -94,35 +118,42 @@ class GameControls extends HTMLElement {
                 }
             </style>
             <div id="gamecontrols">
-            <div id='leftcolumn'>
-                <div class="roundbutton" id="plusbutton">
-                <i class="fas fa-plus"></i>
-                </div>
-                <div class="roundbutton hidden" id="cancelbutton">
-                    <i class="fas fa-times"></i>
-                </div>
+                <div id='leftcolumn'>
+                    <div class="roundbutton hidden" id="plusbutton">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="roundbutton hidden" id="cancelbutton">
+                        <i class="fas fa-times"></i>
+                    </div>
+                    <div class="roundbutton hidden" id="backwardbutton">
+                        <i class="fas fa-arrow-left"></i>
+                    </div>
                 </div>
                 <div id="centercolumn">
-                <div id="navigationbuttons">
-                    <table>
-                        <tr>
-                            <td id="northwestbutton" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(270deg);"></td>
-                            <td id="northeastbutton" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(0deg);"></td>
-                        </tr>
-                        <tr>
-                            <td id="southwestbutton" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(180deg);"></td>
-                            <td id="southeastbutton" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(90deg);"></td>
-                        </tr>
-                    </table>
-                </div>
+                    <div id="navigationbuttons">
+                        <table>
+                            <tr>
+                                <td id="northwestbutton" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(270deg);"></td>
+                                <td id="northeastbutton" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(0deg);"></td>
+                            </tr>
+                            <tr>
+                                <td id="southwestbutton" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(180deg);"></td>
+                                <td id="southeastbutton" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(90deg);"></td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
                 <div id='rightcolumn'>
-                <div class="roundbutton hidden" id="messagebutton">
-                    <i class="fas fa-comment"></i>
-                </div>
-                <div class="roundbutton hidden" id="confirmbutton">
-                    <i class="fas fa-check"></i>
-                </div>
+                    <div class="roundbutton hidden" id="messagebutton">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <div class="roundbutton hidden" id="confirmbutton">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="roundbutton hidden" id="forwardbutton">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+
                 </div>
             </div>
         `;
@@ -130,7 +161,6 @@ class GameControls extends HTMLElement {
 
     connectedCallback() {
         this.attachEventListeners();
-
 
         // listen for active cell change event
         document.addEventListener('activeCellChange', e => {
@@ -144,10 +174,11 @@ class GameControls extends HTMLElement {
                 this.emptyCellButtons();
             } 
         })
+
     }
 
     attachEventListeners() {
-        const events = ['plus', 'cancel', 'message', 'confirm', 'northwest', 'northeast', 'southwest', 'southeast'];
+        const events = ['plus', 'cancel', 'message', 'confirm', 'northwest', 'northeast', 'southwest', 'southeast', 'forward', 'backward'];
         events.forEach(event => {
             const callback = this.getAttribute(`on${event}`);
             if (callback) {
@@ -188,43 +219,83 @@ class GameControls extends HTMLElement {
         this.shadowRoot.getElementById('confirmbutton').classList.add('hidden');
     }
 
+    showForwardButton() {
+        this.shadowRoot.getElementById('forwardbutton').classList.remove('hidden');
+    }
 
+    hideForwardButton() {
+        this.shadowRoot.getElementById('forwardbutton').classList.add('hidden');
+    }
+
+    showBackwardButton() {
+        this.shadowRoot.getElementById('backwardbutton').classList.remove('hidden');
+    }
+
+    hideBackwardButton() {
+        this.shadowRoot.getElementById('backwardbutton').classList.add('hidden');
+    }
+
+    showArrowButtons() {
+        this.shadowRoot.getElementById('navigationbuttons').classList.remove('hidden');
+    }
+
+    hideArrowButtons() {
+        this.shadowRoot.getElementById('navigationbuttons').classList.add('hidden');
+    }
 
     on(button, callback) {
-        // button must be string of 'plus', 'cancel', 'message', 'confirm', 'northwest', 'northeast', 'southwest', 'southeast'
+        // button must be string of 'plus', 'cancel', 'message', 'confirm', 'northwest', 'northeast', 'southwest', 'southeast', 'forward', 'backward'
         const buttonElement = this.shadowRoot.getElementById(`${button}button`);
         buttonElement.addEventListener('click', callback);
     }
 
     emptyCellButtons() {
-        this.hideCancelButton();
-        this.hideMessageButton();
-        this.hideConfirmButton();
+        this.hideAllButtons();
 
         this.showPlusButton();
+        this.showArrowButtons();
     }
 
     placeBuildingButtons() {
-        this.hidePlusButton();
-        this.hideMessageButton();
+        this.hideAllButtons();
 
         this.showCancelButton();
         this.showConfirmButton();
+        this.showArrowButtons();
     }
 
     occupiedCellButtons() {
-        this.hidePlusButton();
-        this.hideConfirmButton();
-        this.hideCancelButton();
-        this.showMessageButton();
+        this.hideAllButtons();
 
-        }
+        this.showMessageButton();
+        this.showArrowButtons();
+    }
+
+    editingCellButtons() {
+        this.hideAllButtons();
+
+        this.showCancelButton();
+        this.showForwardButton();
+        this.showBackwardButton();
+    }
 
     showAllButtons() {
         this.showPlusButton();
         this.showCancelButton();
         this.showMessageButton();
         this.showConfirmButton();
+        this.showForwardButton();
+        this.showBackwardButton();
+    }
+
+    hideAllButtons() {
+        this.hidePlusButton();
+        this.hideCancelButton();
+        this.hideMessageButton();
+        this.hideConfirmButton();
+        this.hideForwardButton();
+        this.hideBackwardButton();
+        this.hideArrowButtons();
     }
 }
 

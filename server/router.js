@@ -208,4 +208,20 @@ router.post('/grid/cell/:x/:y/chat', async (req, res) => {
     }
 });
 
+// delete cells
+router.get('/deletecells/:code', async (req, res) => {
+    if(req.params.code !== 'iknowwhatiamdoing') {
+        res.status(400).send('Invalid code');
+        return;
+    }
+    try {
+        await db.GridCell.deleteMany({});
+        res.send('All cells deleted');
+    } catch (err) {
+        res
+            .status(500)
+            .send(err);
+    }
+})
+
 module.exports = router;

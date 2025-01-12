@@ -31,8 +31,8 @@ class AudioMessage extends HTMLElement {
             margin-left: 5%;
             margin-right: 5%;
             padding: 10px;
-            background-color:rgba(46, 122, 143, 0.35);
-            padding-top: 30px;
+            /* background-color:rgba(46, 122, 143, 0.35); */
+            padding-top: 5px;
             }
 
            

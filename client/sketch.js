@@ -202,7 +202,7 @@ function updateCell(i, j){
             }
 
         if (grid.activeCell.i === i && grid.activeCell.j === j) {
-            createCellChatDiv(grid.activeCell);
+            showCellDetails(cell);
         }
 
         
@@ -221,11 +221,7 @@ document.addEventListener('activeCellChange', (event) => {
     // set ball target to active cell position
     bounceBall.target = createVector(event.detail.cell.position.x, event.detail.cell.position.y + event.detail.cell.height / 2 - 25);
     // remove existing div
-    var div = document.getElementById('activeCellDiv');
-    if (div) {
-        div.parentNode.removeChild(div);
-        }
-
+   
     // fetch all cell details
     fetch("./grid/cell/" + event.detail.cell.i + "/" + event.detail.cell.j).then((response) => {
         // check status
@@ -247,7 +243,7 @@ document.addEventListener('activeCellChange', (event) => {
 
         // create div with cell chat if not in placeBuildingMode
         if(!placeBuildingMode) {
-        createCellChatDiv(event.detail.cell);
+            showCellDetails(event.detail.cell);
         }
         }).catch((err) => {
             if(err.message === '404 cell not found') {
@@ -261,89 +257,81 @@ document.addEventListener('activeCellChange', (event) => {
 
 
 
-createCellChatDiv = (cell) => {
+// createCellChatDiv = (cell) => {
 
     
 
-    // create div on top right corner with cell coordinates
-    var div = document.createElement('div');
-    div.id = 'activeCellDiv';
-    div.style.position = 'absolute';
-    div.style.top = '2%';
-    div.style.left = '2.5%';
-    div.style.color = 'white';
-    div.style.backgroundColor = 'gray';
-    div.style.padding = '0px';
-    div.style.borderRadius = '10px';
-    // shadow
-    div.style.boxShadow = '5px 5px 5px black';
-    // 20% of the screen width
-    div.style.width = '20%';
-    // 20% of the screen height
-    div.style.height = '70%';
-    div.style.zIndex = '1000';
-    // tranparent
-    div.style.opacity = '0.8';
-    // make sure content stays within div
-    div.style.overflow = 'auto';
+//     // create div on top right corner with cell coordinates
+//     var div = document.createElement('div');
+//     div.id = 'activeCellDiv';
+//     div.style.position = 'absolute';
+//     div.style.top = '2%';
+//     div.style.left = '2.5%';
+//     div.style.color = 'white';
+//     div.style.backgroundColor = 'gray';
+//     div.style.padding = '0px';
+//     div.style.borderRadius = '10px';
+//     // shadow
+//     div.style.boxShadow = '5px 5px 5px black';
+//     // 20% of the screen width
+//     div.style.width = '20%';
+//     // 20% of the screen height
+//     div.style.height = '70%';
+//     div.style.zIndex = '1000';
+//     // tranparent
+//     div.style.opacity = '0.8';
+//     // make sure content stays within div
+//     div.style.overflow = 'auto';
 
-    // append div to body
-    document.body.appendChild(div);
+//     // append div to body
+//     document.body.appendChild(div);
 
-    const existingMessagesDiv = document.createElement('div');
-    existingMessagesDiv.id = 'existingMessagesDiv';
-    // 60 percent height, from top
-    existingMessagesDiv.style.height = '60%';
-    // 100% width
-    existingMessagesDiv.style.width = '100%';
+//     const existingMessagesDiv = document.createElement('div');
+//     existingMessagesDiv.id = 'existingMessagesDiv';
+//     // 60 percent height, from top
+//     existingMessagesDiv.style.height = '60%';
+//     // 100% width
+//     existingMessagesDiv.style.width = '100%';
     
-    div.appendChild(existingMessagesDiv);
+//     div.appendChild(existingMessagesDiv);
 
 
 
-    // append cell description as <text-message>
-    if(cell.description) {
-    var textMessage = document.createElement('text-message');
-    textMessage.setAttribute('message', cell.description);
-    existingMessagesDiv.appendChild(textMessage);
-    }
+//     // append cell description as <text-message>
+//     if(cell.description) {
+//     var textMessage = document.createElement('text-message');
+//     textMessage.setAttribute('message', cell.description);
+//     existingMessagesDiv.appendChild(textMessage);
+//     }
     
-    // create an <audio-message> element
+//     // create an <audio-message> element
     
-    var audioMessage = document.createElement('audio-message');
-    existingMessagesDiv.appendChild(audioMessage);
+//     var audioMessage = document.createElement('audio-message');
+//     existingMessagesDiv.appendChild(audioMessage);
     
-    if(cell.voice) {
-        console.log('cell.voice', cell.voice);
-        audioMessage.setAudioFromBase64String(cell.voice, true, 1000);
-        }else{
-            // rmemove audio message
-            audioMessage.parentNode.removeChild(audioMessage);
-        }
+//     if(cell.voice) {
+//         console.log('cell.voice', cell.voice);
+//         audioMessage.setAudioFromBase64String(cell.voice, true, 1000);
+//         }else{
+//             // rmemove audio message
+//             audioMessage.parentNode.removeChild(audioMessage);
+//         }
     
 
 
 
-    // create an audio-recorder element
-    var audioRecorder = document.createElement('audio-recorder');
-    // move to bottom
-    audioRecorder.style.position = 'absolute';
-    audioRecorder.style.bottom = '0';
-    // 100% width
-    audioRecorder.style.width = '100%';
+//     // create an audio-recorder element
+//     var audioRecorder = document.createElement('audio-recorder');
+//     // move to bottom
+//     audioRecorder.style.position = 'absolute';
+//     audioRecorder.style.bottom = '0';
+//     // 100% width
+//     audioRecorder.style.width = '100%';
 
-    // append audio-recorder to div
-    existingMessagesDiv.appendChild(audioRecorder);
+//     // append audio-recorder to div
+//     existingMessagesDiv.appendChild(audioRecorder);
 
-    return div;
-}
+//     return div;
+// }
 
 
-function speechBubble(innerHTML){
-    const bubble = document.createElement('div');
-    bubble.innerHTML = innerHTML;
-    // add classes .bubble .medium
-    bubble.classList.add('bubble');
-    bubble.classList.add('medium');
-    return bubble;
-}

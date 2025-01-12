@@ -42,6 +42,9 @@
 
 
 
+<div id="temp-image-holder" style="display:none"></div>
+
+
 </body>
 
 <script>
@@ -55,14 +58,6 @@
         viewMode.placeBuildingStop();
     });
 
-    // listen for cell-editing-finished
-    document.addEventListener('cell-editing-finished', async () => {
-        console.log('cell-editing-finished event received');
-        const cellEditor = document.querySelector('cell-editor');
-        const cell = await cellEditor.getCell();
-        viewMode.editCellStop();
-        viewMode.placeBuildingStart(cell);
-    });
 
    
 
@@ -83,7 +78,7 @@
         cell.i = grid.activeCell.i;
         cell.j = grid.activeCell.j;
         console.log('Placing cell:', cell);
-        saveCellToDatabase(cell).then(response => {
+        return saveCellToDatabase(cell).then(response => {
             // if 409 conflict, alert user
             if(response.status === 409) {
                 alert('Sorry, someone built something here just this second... please choose another place.');
@@ -102,10 +97,6 @@
 
             // in any case, pull the updated cell data from the server
             updateCell(cell.i, cell.j);
-
-            viewMode.placeBuildingStop();
-            viewMode.defaultStart();
-
             
         }).catch(error => {
             console.error('Error saving cell:', error);
@@ -163,7 +154,93 @@ const saveCellToDatabase = async function (cell) {
 
     }
 
+
     
+    function speechBubble(innerHTML){
+    const bubble = document.createElement('div');
+    bubble.innerHTML = innerHTML;
+    // add classes .bubble .medium
+    bubble.classList.add('bubble');
+    return bubble;
+}
+
+function showCellDetails(){
+    cell = grid.activeCell;
+    // speech bubble top right with cell description
+    console.log(cell);
+    // const bubble = speechBubble("<div style='height:100%; overflow:scroll'></div>");
+    const bubble = speechBubble("");
+    // make sure it's independent of everything in the top right conrer
+    bubble.style.position = 'absolute';
+    document.body.appendChild(bubble);
+    
+    // voice-message
+    const voiceMessage = document.createElement('audio-message');
+    // first child of bubble
+    // bubbleInternal = bubble.children[0];
+    bubble.appendChild(voiceMessage);
+    voiceMessage.setAudioFromBase64String(cell.voice, true, 1000);
+    
+
+   // horizontally align in the center
+    bubble.style.right = '20px';
+    // vertically align at the top
+    bubble.style.top = '20px';
+
+    // // 30% height
+    bubble.style.height = '100px';
+
+    bubble.style.width = '30%';
+    bubble.style.zIndex = '1000'; 
+    // add 'left' class to make it point to the left
+    bubble.classList.add('left');
+    bubble.classList.add('animateAppearance')
+
+
+    // below this one, another speech bubble with the description
+
+    const description = cell.description;
+    const descriptionBubble = speechBubble(description);
+    descriptionBubble.style.position = 'absolute';
+    descriptionBubble.style.right = '20px';
+    descriptionBubble.style.top = '150px';
+    descriptionBubble.style.height = '120px';
+    descriptionBubble.style.width = '30%';
+    descriptionBubble.style.zIndex = '1000';
+    descriptionBubble.classList.add('left');
+    descriptionBubble.classList.add('slowappear');
+    document.body.appendChild(descriptionBubble);
+
+
+    
+
+}
+
+function hideCellDetails(){
+    // remove all bubbles
+    const bubbles = document.querySelectorAll('.bubble');
+    bubbles.forEach(bubble => {
+        bubble.remove();
+    });
+}
+
+
+document.addEventListener('activeCellChange', (event) => {
+    console.log('activeCellChange event received in global scope');
+    hideCellDetails();
+    // if cell has image, show details
+    if(grid.activeCell.img) {
+        const activeCellCoordinates = [grid.activeCell.i, grid.activeCell.j];
+        setTimeout(()=>{
+            // check if the active cell is still the same
+            if(activeCellCoordinates[0] === grid.activeCell.i && activeCellCoordinates[1] === grid.activeCell.j) {
+            }
+
+        }, 800);
+    }
+});
+
+
 
 </script>
 </html>
