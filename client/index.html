@@ -3,325 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Document</title>
-    <!-- pixelspeechbubbles.css -->
+    <title>Isotown</title>
     <link rel="stylesheet" href="pixelspeechbubbles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-
-
-    <!-- sketch dependencies -->
     <script src="p5viewerclass.js"></script>
     <script src="bouncyBallClass.js"></script>
+    <script src="cellclass.js"></script>
+    <script src="gridclass.js"></script>
+    <script src="viewmode.js"></script>
     <script src="sketch.js" defer></script>
-    <!-- intro.js -->
     <link href="https://unpkg.com/intro.js/minified/introjs.min.css" rel="stylesheet">
     <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
-    <!-- custom intro-to-index.js -->
     <script src="intro-to-index.js" defer></script>
-    <!-- import editcellComponent as module -->
     <script type="module" src="./editcellComponent.js"></script>
-<!-- audiomessage-componen.js -->
     <script src="audiomessage-component.js"></script>
     <script src="textmessage-component.js"></script>
-    <!-- wavesurver v7 -->
     <script src="https://unpkg.com/wavesurfer.js"></script>
-    <!-- fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-        button {
-            position: absolute;
-            padding: 10px;
-            font-size: 20px;
-            background-color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        button#zoom-in {
-            bottom: 10px;
-            right: 10px;
-        }
-        button#zoom-out {
-            bottom: 10px;
-            right: 60px;
-        }
-
-        #gamecontrols {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 130px;
-            background-color: rgba(255, 255, 255, 0.5);
-            z-index: 100;
-            text-align: center;
-            /* algin all content in center horizontally and vertically */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-
-        }
-
-        .roundbutton {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: white;
-            margin: 10px;
-            display: inline-block;
-            /* shadow */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            /* align content at cent4er vertically and horizontally */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-
-        }
-
-        .roundbutton:hover {
-            /* translate and remove shadow */
-            transform: translate(3px, 3px);
-            box-shadow: none;
-        }
-
-        #gameprimaryactionbutton {
-            background-color: lightblue !important
-        }
-
-        #gameprimaryactionbutton:hover {
-            background-color: rgb(96, 194, 226) !important;
-        }
-
-        .addcellaction {
-            background-color: lightgreen !important;
-            /* content fontawesome plus icon */
-            content: '\f067';
-        }
-
-        .cancelcellaction {
-            background-color: lightcoral !important;
-            /* content fontawesome times icon */
-            content: '\f00d';
-        }
-
-        .leavenoteaction {
-            background-color: lightyellow !important;
-            /* content fontawesome sticky note icon */        }
-
-        .leavenoteaction:hover {
-            background-color: rgb(255, 255, 0) !important;
-        }
-
-        .confirmcellaction{
-            background-color:  rgb(28, 227, 117) !important;
-        }
-
-        .confirmcellaction:hover {
-            background-color:  rgb(17, 160, 81) !important;
-        }
-        .hidden {
-            display: none;
-        }
-
-
-
-        #gamecancelactionbutton {
-            display: none;
-            background-color: lightcoral !important;
-            /* content fontawesome times icon */
-            content: '\f00d';
-        }
-
-        #gamecancelactionbutton:hover {
-            background-color: rgb(255, 0, 0) !important;
-        }
-
-        
-
-    cell-editor {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        z-index: 100;
-        display: none;
-    }
-
-    main {
-       /* display: none; */
-    }
-
-    .movearrow {
-        cursor: pointer;
-    }
-
-    .movearrow:hover img {
-        filter: invert(1);
-    }
-
-    
-
-    </style>
+    <link rel="stylesheet" href="index.css">
+    <!-- mainnavigagtion.js -->
+    <script src="mainnavigation.js" defer></script>
 </head>
 
 
 
 <body>
 
+<main-navigation
+    onnortheast="grid.stepNorthEast()"
+    onsoutheast="grid.stepSouthEast()"
+    onsouthwest="grid.stepSouthWest()"
+    onnorthwest="grid.stepNorthWest()"
+    onmessage="()=>{console.log('message button pressed')}"
+    onplus="viewMode.editCellStart()">
+</main-navigation>
 
-<div id="gamecontrols">
-    <div class="roundbutton addcellaction" id="gameprimaryactionbutton"></div>
-    <!-- cancel button -->
-    <div class="roundbutton cancelcellaction" id="gamecancelactionbutton">
-        <!-- font awesome 'times' icon -->
-        <i class="fas fa-times"></i>
-    </div>
-    <div id="zoom-buttons" style="display:none;">
-        <button id="zoom-in">+</button>
-        <button id="zoom-out">-</button>
-    </div>
-    <div id="navigationbuttons">
-     
-        <table>
-            <tr>
-                <td id="control-move-north-west" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(270deg);" width="40px;" height="40px;"></td>
-
-                <td id="control-move-north-east" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(0deg);" width="40px;" height="40px;"></td>
-            </tr>
-            <tr>
-                <td id="control-move-south-west" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(180deg);" width="40px;" height="40px;"></td>
-                <td id="control-move-south-east" class="movearrow"><img src="arrow_up_right.svg" alt="arrow_up_right" style="transform: rotate(90deg);" width="40px;" height="40px;"></td>
-
-            </tr>
-        </table>
-
-    </div>
-    <div class="roundbutton leavenoteaction hidden" id="gameleavenotebutton">
-        <!-- font awesome 'comment' icon -->
-        <i class="fas fa-comment"></i>
-    </div>
-
-    <!-- confirmactionbutton -->
-    <div class="roundbutton confirmcellaction hidden" id="gameconfirmactionbutton">
-        <!-- font awesome 'check' icon -->
-        <i class="fas fa-check"></i>
-    </div>
-
-</div>
 <cell-editor></cell-editor>
+
+
 
 </body>
 
 <script>
-    const zoomInButton = document.getElementById('zoom-in');
-    const zoomOutButton = document.getElementById('zoom-out');
-
-    zoomInButton.addEventListener('click', () => {
-        Viewer.zoomIn();
-    });
-
-    zoomOutButton.addEventListener('click', () => {
-        Viewer.zoomOut();
-    });
-
-    const northEastButton = document.getElementById('control-move-north-east');
-    const northWestButton = document.getElementById('control-move-north-west');
-    const southEastButton = document.getElementById('control-move-south-east');
-    const southWestButton = document.getElementById('control-move-south-west');
-
-    northEastButton.addEventListener('click', () => {
-        grid.stepNorthEast();
-    });
-
-    northWestButton.addEventListener('click', () => {
-        grid.stepNorthWest();
-    });
-
-    southEastButton.addEventListener('click', () => {
-        grid.stepSouthEast();
-    });
-
-    southWestButton.addEventListener('click', () => {
-        grid.stepSouthWest();
-    });
 
 
-
-
-
-
-    setPrimaryActionToAddCell = () => {
-        const primaryActionButton = document.getElementById('gameprimaryactionbutton');
-        primaryActionButton.classList.add('addcellaction');
-        primaryActionButton.innerHTML = '<i class="fas fa-plus"></i>';
-        primaryActionButton.addEventListener('click', () => {
-            // stop event propagation
-            event.stopPropagation();
-
-            openAddCellDialog();
-        });
-
-    }
-    setPrimaryActionToAddCell();
-
-    setLeaveNoteAction = () => {
-        const leaveNoteButton = document.getElementById('gameleavenotebutton');
-        leaveNoteButton.classList.add('leavenoteaction');
-        leaveNoteButton.innerHTML = '<i class="fas fa-sticky-note"></i>';
-        leaveNoteButton.addEventListener('click', () => {
-            // stop event propagation
-            event.stopPropagation();
-            openAddNoteDialog();
-        });
-    }
-
-
-    openAddCellDialog = () => {
-
-        // hide p5 canvas
-        const canvas = document.querySelector('canvas');
-        canvas.style.display = 'none';
-        // hide #activeCellDiv
-        const activeCellDiv = document.getElementById('activeCellDiv');
-        if (activeCellDiv){
-        activeCellDiv.style.display = 'none';
-    }
-        const cellEditor = document.querySelector('cell-editor');
-        cellEditor.editCell(grid.activeCell.i,grid.activeCell.j);
-        console.log(cellEditor);
-        cellEditor.style.display = 'block';
-        // get isometric-drawing component from shadow root
-        const isometricDrawing = cellEditor.shadowRoot.querySelector('isometric-drawing');
-        isometricDrawing.setSize(300,600);
-    }
-
-    closeAddCellDialog = () => {
-        const canvas = document.querySelector('canvas');
-        canvas.style.display = 'block';
-
-        // show activeCellDiv
-        const activeCellDiv = document.getElementById('activeCellDiv');
-        if (activeCellDiv){
-        activeCellDiv.style.display = 'block';
-    }
-        const cellEditor = document.querySelector('cell-editor');
-        cellEditor.style.display = 'none';
-    }
 
     // listen for         this.dispatchEvent(new CustomEvent('cancel-editing-cell'));
     document.addEventListener('cancel-editing-cell', () => {
         console.log('cancel-editing-cell event received');
-        closeAddCellDialog();
+        viewMode.editCellStop();
+        viewMode.placeBuildingStop();
     });
 
     // listen for cell-editing-finished
@@ -329,10 +60,11 @@
         console.log('cell-editing-finished event received');
         const cellEditor = document.querySelector('cell-editor');
         const cell = await cellEditor.getCell();
-        startSelectCellToBuildMode(cell);
-        closeAddCellDialog();
-        
+        viewMode.editCellStop();
+        viewMode.placeBuildingStart(cell);
     });
+
+   
 
     // leave a cookie so we know the user has been here before
 
@@ -363,11 +95,16 @@
             }
             if(response.status === 201) {
                 console.log('Cell saved successfully');
-                stopSelectCellToBuildMode();
+                const cellEditor = document.querySelector('cell-editor');
+                cellEditor.resetAll();
+                viewMode.placeBuildingStop();
             }
 
             // in any case, pull the updated cell data from the server
             updateCell(cell.i, cell.j);
+
+            viewMode.placeBuildingStop();
+            viewMode.defaultStart();
 
             
         }).catch(error => {
@@ -378,65 +115,15 @@
     }
 
 
-    startSelectCellToBuildMode = (cell) => {
-        buildingToPlace = cell; // global from sketch.js
-        placeBuildingMode = true; // global from sketch.js
-        // hide add cell action button
-        const primaryActionButton = document.getElementById('gameprimaryactionbutton');
-        primaryActionButton.style.display = 'none';
-        // hide leave note action button
-        const leaveNoteButton = document.getElementById('gameleavenotebutton');
-        leaveNoteButton.style.display = 'none';
 
-        // show gamecancelactionbutton
-        const cancelActionButton = document.getElementById('gamecancelactionbutton');
-        cancelActionButton.style.display = 'flex';
-
-        // show confirm action button
-        const confirmActionButton = document.getElementById('gameconfirmactionbutton');
-        // remove .hidden class
-        confirmActionButton.classList.remove('hidden');
-
-        confirmActionButton.addEventListener('click', () => {
-            // stop event propagation
-            event.stopPropagation();
-            confirmPlacingCell();
-        });
-
-
-        cancelActionButton.addEventListener('click', () => {
-            // stop event propagation
-            event.stopPropagation();
-            stopSelectCellToBuildMode();
-        });
-
-
-    }
 
     
-    
-    stopSelectCellToBuildMode = () => {
-        buildingToPlace = null; // global from sketch.js
-        placeBuildingMode = false; // global from sketch.js
-        // show add cell action button
-        const primaryActionButton = document.getElementById('gameprimaryactionbutton');
-        primaryActionButton.style.display = 'flex';
-        // show leave note action button
-        const leaveNoteButton = document.getElementById('gameleavenotebutton');
-        leaveNoteButton.style.display = 'flex';
-
-        // hide gamecancelactionbutton
-        const cancelActionButton = document.getElementById('gamecancelactionbutton');
-        cancelActionButton.style.display = 'none';
-
-        const confirmActionButton = document.getElementById('gameconfirmactionbutton');
-        confirmActionButton.classList.add('hidden');
-    }
 
 
-const saveCellToDatabase = async function (cell) {
-    console.log('cell:', cell);
-    console.log('Saving to database cell:', cell.i, cell.j);
+
+
+
+const saveCellToDatabase = async function (cell) {  
 
     if (cell.i === undefined || cell.j === undefined) {
         console.error('i or j not set');

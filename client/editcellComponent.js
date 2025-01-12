@@ -300,6 +300,13 @@ class EditCellComponent extends HTMLElement {
         };
     }
 
+    resetAll () {
+        this.shadowRoot.querySelector('audio-recorder').stopRecording();
+        this.shadowRoot.querySelector('audio-recorder').deleteRecording();
+        this.shadowRoot.getElementById('cellDescription').value = '';
+        this.shadowRoot.querySelector('isometric-drawing').clear();
+    }
+
 
     connectedCallback() {
 

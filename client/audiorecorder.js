@@ -160,8 +160,6 @@ class AudioRecorder extends HTMLElement {
         this.shadowRoot.querySelector('#record').innerHTML = '<i class="fas fa-microphone"></i>';
         this.shadowRoot.querySelector('#record').classList.remove('recording');
         this.mediaRecorder.stop();
-        // emit event
-        this.dispatchEvent(new CustomEvent('recording-stopped', {detail: this.audioBlob}));
     }
 
     togglePlaying() {
