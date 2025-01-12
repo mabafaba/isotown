@@ -44,6 +44,9 @@ class EditCellComponent extends HTMLElement {
                 position: relative;
                 z-index: 2;
             }
+            #iiisometric-wrapper{
+                background-color: white;
+            }
 
             #navigationbuttons {
                 display: none;
@@ -94,11 +97,11 @@ class EditCellComponent extends HTMLElement {
             } */
 
             .page {
-                border: 1px solid white;
+                /* border: 1px solid white; */
                 display: flex;
                 flex-wrap: wrap; /* Allows items to wrap on narrow screens */
                 gap: 10%;
-                height: 80%;
+                height: 100%;
                 width: 100%;
                 overflow: scroll;
                 padding: 0px;
@@ -107,7 +110,7 @@ class EditCellComponent extends HTMLElement {
 
             .pageItem {
                 
-                border: 1px solid green;
+                /* border: 1px solid green; */
                 flex: 1 1 45%;   /* Flex item with 45% width and shrink/grow behavior */
                 min-width: 200px; /* Minimum width before wrapping */
                 background-color: none;
@@ -119,9 +122,13 @@ class EditCellComponent extends HTMLElement {
 
             textarea {
                 display: block;
-                width: 100%;
+                width: 60%;
+                margin-left: auto;
+                margin-right: auto;
                 height: 10em;
                 rows: 10;
+                
+                font-size: 2em;
             }
             .description {
                 
@@ -147,6 +154,9 @@ class EditCellComponent extends HTMLElement {
                 box-shadow: none;
             }
 
+            isometric-drawing {
+                width: 300px;
+            }
 
             .confirmbutton {
                 background-color: rgb(28, 227, 117) !important;
@@ -156,7 +166,20 @@ class EditCellComponent extends HTMLElement {
                 background-color: rgb(17, 160, 81) !important;
             }
 
-            
+            div.instructions {
+                    flex: 1 auto;
+                    padding-top: 100px;
+                    width: 60%;
+                    margin-left: auto;
+                    margin-right: auto;
+            }
+
+            div.instructions.drawinginstructions {
+                flex: 1 1 20%;
+                height: 3em;
+                width: 100%;
+                padding-top:20px;
+            }
 
             </style>
             <div class="container">
@@ -170,8 +193,8 @@ class EditCellComponent extends HTMLElement {
             </div>
             </div>
             <div id="page2" class="page">
-            <div class="instructions pageItem">
-                HELLO!!!! Record your voice to explain what your field is all about!
+            <div id="recordinginstructions" class="instructions pageItem">
+                Record your voice to explain what your field is all about!
                 It doesn't have to be perfect, just give it a try!
                 Explain it as if you were talking to a friend over the phone.
                 You can always re-record it.
@@ -183,9 +206,7 @@ class EditCellComponent extends HTMLElement {
             </div>
             <div id="page3" class="page">
             <div class="instructions drawinginstructions pageItem">
-            In the field below, draw a picture that will be shown on the playing field.
-            You don't have to be an artist, just give it a try!
-            Can you think of a color, shape, landscape, object that feels fitting to what you are sharing?
+                Draw some cool looking cubes to represent your idea!
             </div>
             <div class="drawing pageItem">
             <isometric-drawing></isometric-drawing>

@@ -90,7 +90,12 @@ function setup() {
     Viewer.jumpTo(grid.cells[0][0].position.x, grid.cells[0][0].position.y);
     // bounce ball at bottom center of active cell
     bounceBall = new BouncyBall(grid.activeCell.position.x , grid.activeCell.position.y+ grid.activeCell.height/2 - 10, 20);
-
+    socket.emit('user-moved', {
+        i: grid.activeCell.i,
+        j: grid.activeCell.j,
+        hue: bounceBall.hue
+        
+    });
 
     // remove loading div
     var loadingDiv = document.getElementById('loadingDiv');
@@ -126,7 +131,11 @@ function draw() {
 
 
     // grid in front of active cell
-    // grid.display(behindActiveCell=false, inFrontOfActiveCell=true, activeCell=false);   
+    // grid.display(behindActiveCell=false, inFrontOfActiveCell=true, activeCell=false);  
+    otherUserBalls.forEach((ball) => {
+        ball.update();
+        ball.display();
+        }); 
     pop();
 
 

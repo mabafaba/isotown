@@ -59,7 +59,16 @@ const viewMode = {
 
             mainNavigation.on('confirm',async () => {
                 const cellEditor = document.querySelector('cell-editor');
-                const cell = await cellEditor.getCell();
+                var cell = null;
+                try {
+                   cell = await cellEditor.getCell();
+                } catch (error) {
+                   alert("Make sure you have a description, a voice recording an a drawing ready.")
+                   console.log('Error saving cell',error);
+                   return;
+                }
+                
+                // 
                 var imagesdiv = document.getElementById('temp-image-holder');
                 tempImage = createImg(cell.imgURL,'drawing for cell').parent(imagesdiv);        
                 viewMode.editCellStop();

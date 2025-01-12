@@ -15,7 +15,8 @@
     "canvas": "^2.11.2",
     "express": "^4.21.1",
     "image-size": "^1.2.0",
-    "mongoose": "^8.8.4"
+    "mongoose": "^8.8.4",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "node-sass": "^9.0.0"

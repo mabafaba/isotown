@@ -52,10 +52,12 @@
         
         console.log(cellEditor);
         cellEditor.style.display = 'block';
-        cellEditor.editCell(1,1);
-        // get isometric-drawing component from shadow root
-        const isometricDrawing = cellEditor.shadowRoot.querySelector('isometric-drawing');
-        isometricDrawing.setSize(300,600);
+    
+
+      setTimeout(() => {
+        celleditor = document.querySelector('cell-editor');
+        celleditor.setPage(3);
+      }, 1000);
     
 
 </script>

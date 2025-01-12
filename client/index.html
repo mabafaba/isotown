@@ -21,6 +21,8 @@
     <script src="https://unpkg.com/wavesurfer.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="index.css">
+    <!-- socket.io from cdn   -->
+    <script src="https://cdn.socket.io/4.1.3/socket.io.min.js"></script>
     <!-- mainnavigagtion.js -->
     <script src="mainnavigation.js" defer></script>
 </head>
@@ -93,6 +95,8 @@
                 const cellEditor = document.querySelector('cell-editor');
                 cellEditor.resetAll();
                 viewMode.placeBuildingStop();
+                // broadcast event to all clients
+                socket.emit('new-cell-created', cell);
             }
 
             // in any case, pull the updated cell data from the server
@@ -238,9 +242,59 @@ document.addEventListener('activeCellChange', (event) => {
 
         }, 800);
     }
+    // find bouncyBall
+
+    // let everyone know that I' here
+    
+    socket.emit('user-moved', {
+        i: grid.activeCell.i,
+        j: grid.activeCell.j,
+        hue: bounceBall.hue
+        
+    });
 });
 
 
+// socket.io
+const socket = io();
+socket.on('connect', () => {
+    console.log('Connected to server');
+    socket.emit('join', 'client');
+});
+
+// listen to new cell created event
+socket.on('new-cell-created', (cell) => {
+    
+    console.log('New cell received:', cell);
+    updateCell(cell.x, cell.y);
+});
+//
+var otherUserBalls = [];
+// listen to active cell change event
+socket.on('user-moved', (data) => {
+    console.log('Active cell change event received:', data);
+    // find the bouncy ball with same socket id
+    let ball = otherUserBalls.find(ball => ball.socketId === data.socketId);
+    if(!ball) {
+        ball = new BouncyBall(
+            grid.cells[data.i][data.j].position.x, 
+            grid.cells[data.i][data.j].position.y+ grid.cells[data.i][data.j].height/2 - 10, 20, 
+            data.hue, 150);
+            ball.socketId = data.socketId;
+            otherUserBalls.push(ball);
+    }
+//target = createVector(event.detail.cell.position.x, event.detail.cell.position.y + event.detail.cell.height / 2 - 25);
+    ball.target = createVector(grid.cells[data.i][data.j].position.x, grid.cells[data.i][data.j].position.y + grid.cells[data.i][data.j].height / 2 - 25);
+    
+});
+
+socket.on('user-disconnected', (socketId) => {
+    console.log('User disconnected:', socketId);
+    // remove the ball with the socket id
+    disconnectedBall = otherUserBalls.find(ball => ball.socketId === socketId);
+    console.log('Disconnected ball:', disconnectedBall);
+    otherUserBalls = otherUserBalls.filter(ball => ball.socketId !== socketId);
+});
 
 </script>
 </html>

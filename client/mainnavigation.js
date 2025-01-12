@@ -246,7 +246,10 @@ class GameControls extends HTMLElement {
     on(button, callback) {
         // button must be string of 'plus', 'cancel', 'message', 'confirm', 'northwest', 'northeast', 'southwest', 'southeast', 'forward', 'backward'
         const buttonElement = this.shadowRoot.getElementById(`${button}button`);
-        buttonElement.addEventListener('click', callback);
+        // remove any existing event listeners (not just a specific one) by cloning the element
+        const newButtonElement = buttonElement.cloneNode(true);
+        buttonElement.parentNode.replaceChild(newButtonElement, buttonElement);
+        newButtonElement.addEventListener('click', callback);
     }
 
     emptyCellButtons() {

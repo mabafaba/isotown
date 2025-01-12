@@ -3,7 +3,7 @@
 
 class BouncyBall {
 
-    constructor(x, y, radius) {
+    constructor(x, y, radius, hue, alpha) {
         this.floorPoint = createVector(x, y);
         this.position = createVector(x, y-(radius/2)-10);
         this.radius = radius;
@@ -11,9 +11,21 @@ class BouncyBall {
         this.bounceSpeed = 0.2;
         this.bounceHeight = 20;
         this.speed = createVector(0, 0);
+        this.hue = hue;
+        
         // random color with full brightness and saturation
         colorMode(HSB, 255);
-        this.color = color(random(255), 255, 255, 200);
+        if(!alpha){
+            this.alpha = 200;
+        } else {
+            this.alpha = alpha;
+        }
+        if(hue){
+        this.color = color(hue, 255, 255, this.alpha);
+        } else {
+        this.hue = random(255);
+        this.color = color(this.hue, 255, 255, this.alpha);
+        }
         }
 
     display() {

@@ -8,35 +8,97 @@ class IsometricDrawing extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
                 #iiisometric-wrapper {
-                    border: 2px solid #ccc;
-                    border-radius: 5px;
+                    border-radius: 0px;
+                    background: white;
                 }
                 #single-cube-wrapper {
                     width: 50px;
                     height: 50px;
                 }
+                .hidden {
+                    display: none;
+                }
+                /* left align all table content */
+                table {
+                    width: 100%;
+                }
+                table td {
+                    text-align: left;
+                }
+
+                button {
+                    background:rgb(174, 255, 234);
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    // some box shadow
+                    box-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+
+                }
+
+                #clear {
+                    background: #ff6347;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                }
+
+                .highlightedButton {
+                    background:rgb(11, 253, 84);
+                    color: white;
+                }
+
+                #
+                
             </style>
-            <div id="iiisometric-wrapper"></div>
+          
             <div id="controls">
-                <button id="clear">Clear</button>
-                <button id="undo">Undo</button>
-                <button id="random-color">Random Color</button>
-                <button id="copy">Copy</button>
-                <button id="download">Download</button>
-                <button id="draw">Draw</button>
-                <button id="erase">Erase</button>
-                <label for="opacity">Opacity:</label>
-                <input type="range" id="opacity" name="opacity" min="0" max="1" step="0.1" value="1">
-                <label for="cube-size">Cube Size:</label>
-                <input type="range" id="cube-size" name="cube-size" min="20" max="100" step="5" value="50">
-                <label for="color">Color:</label>
-                <input type="color" id="color" name="color" value="#1e90ff">
-                <label for="drawing-order">Drawing Order:</label>
-                <select id="drawing-order" name="drawing-order">
-                    <option value="front">Front</option>
-                    <option value="behind">Behind</option>
-                </select>
+            <button id="download" class="hidden">Download</button>
+            <button id="copy" class="hidden">Copy</button>
+            <label for="opacity" class="hidden">Opacity:</label>
+            <input type="range" class="hidden" id="opacity" name="opacity" min="0" max="1" step="0.1" value="1">
+
+                <table>
+                   
+                    <tr>
+                        <td><button id="draw" class="highlightedButton">Draw</button></td>
+                        <td><button id="erase">Erase</button></td>
+                    </tr>
+                    <tr>
+                        <td><label for="cube-size">Cube Size:</label></td>
+                        <td><input type="range" id="cube-size" name="cube-size" min="20" max="100" step="5" value="50"></td>
+
+                        
+                    </tr>
+                    <tr>
+                        <td><label for="color">Color:</label></td>
+                        <td>
+                            <input type="color" id="color" name="color" value="#1e90ff">
+                             <button id="random-color">random</button>
+                         </td>
+                    </tr>
+                    <tr>
+                        <td><label for="drawing-order">draw in</label></td>
+                        <td>
+                            <select id="drawing-order" name="drawing-order">
+                                <option value="front">Front</option>
+                                <option value="behind">Back</option>
+                            </select>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td><button id="clear">delele all</button></td>
+                        <td><button id="undo">Undo</button></td>
+                    </tr>
+
+                </table>
             </div>
+            <div id="iiisometric-wrapper"></div>
         `;
 
         this.width = 200;
@@ -242,6 +304,15 @@ class IsometricDrawing extends HTMLElement {
     }
 
     setCurrentTool(tool) {
+        if(tool === 'draw') {
+            // highlight draw button
+            this.shadowRoot.querySelector('#draw').classList.add('highlightedButton');
+            this.shadowRoot.querySelector('#erase').classList.remove('highlightedButton');
+        } else {
+            // highlight erase button
+            this.shadowRoot.querySelector('#erase').classList.add('highlightedButton');
+            this.shadowRoot.querySelector('#draw').classList.remove('highlightedButton');
+        }
         this.currentTool = tool;
     }
 
