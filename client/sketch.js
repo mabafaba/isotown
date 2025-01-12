@@ -227,6 +227,8 @@ function updateCell(i, j){
 
 // listen 
 document.addEventListener('activeCellChange', (event) => {
+    // log chatMessages on active cell
+    console.log('active cell messages', event.detail.cell.chatMessages);
     // set ball target to active cell position
     bounceBall.target = createVector(event.detail.cell.position.x, event.detail.cell.position.y + event.detail.cell.height / 2 - 25);
     // remove existing div
@@ -243,6 +245,7 @@ document.addEventListener('activeCellChange', (event) => {
         // update all cell data
         event.detail.cell.description = data.description;
         event.detail.cell.voice = data.voice;
+        event.detail.cell.chatMessages = data.chatMessages;
         // image
         if(data.image) {
             var imagesdiv = document.createElement('div');

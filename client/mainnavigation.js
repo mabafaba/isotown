@@ -119,8 +119,8 @@ class GameControls extends HTMLElement {
             </style>
             <div id="gamecontrols">
                 <div id='leftcolumn'>
-                    <div class="roundbutton hidden" id="plusbutton">
-                        <i class="fas fa-plus"></i>
+                <div class="roundbutton hidden" id="messagebutton">
+                        <i class="fas fa-comment"></i>
                     </div>
                     <div class="roundbutton hidden" id="cancelbutton">
                         <i class="fas fa-times"></i>
@@ -144,9 +144,10 @@ class GameControls extends HTMLElement {
                     </div>
                 </div>
                 <div id='rightcolumn'>
-                    <div class="roundbutton hidden" id="messagebutton">
-                        <i class="fas fa-comment"></i>
+                    <div class="roundbutton hidden" id="plusbutton">
+                        <i class="fas fa-plus"></i>
                     </div>
+
                     <div class="roundbutton hidden" id="confirmbutton">
                         <i class="fas fa-check"></i>
                     </div>

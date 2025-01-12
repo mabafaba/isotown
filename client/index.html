@@ -36,7 +36,7 @@
     onsoutheast="grid.stepSouthEast()"
     onsouthwest="grid.stepSouthWest()"
     onnorthwest="grid.stepNorthWest()"
-    onmessage="()=>{console.log('message button pressed')}"
+    onmessage="openTextMessageUI()"
     onplus="viewMode.editCellStart()">
 </main-navigation>
 
@@ -214,9 +214,41 @@ function showCellDetails(){
     descriptionBubble.classList.add('left');
     descriptionBubble.classList.add('slowappear');
     document.body.appendChild(descriptionBubble);
+    // get chatMessages from cell
+    var responses = cell.chatMessages;
+    // sort by chatMessages[i].timestamp (newest first)
+    responses.sort((a, b) => {
+        return new Date(a.timestamp) - new Date(b.timestamp);
+    });
+    // get .message from each chatMessage
+    responses = responses.map(chatMessage => chatMessage.message); 
 
+    // div for text messages
+    const responseContainer = document.createElement('div');
+    // on left side
+    responseContainer.style.position = 'absolute';
+    responseContainer.style.left = '20px';
+    responseContainer.style.top = '20px';
+    responseContainer.style.height = '80%';
+    responseContainer.style.width = '30%';
+    responseContainer.style.zIndex = '1000';
+    responseContainer.id = 'response-container';
+    // scroll
+    responseContainer.style.overflow = 'scroll';
 
-    
+    // add bubbles with text responses
+    responses.forEach((response, index) => {
+        setTimeout(() => {
+            const bubble = responseBubble(response);
+            responseContainer.appendChild(bubble);
+            // scroll to bottom
+            responseContainer.scrollTop = responseContainer.scrollHeight;
+        }, index * 200);
+    });
+
+    document.body.appendChild(responseContainer);
+
+    // openTextMessageUI();
 
 }
 
@@ -230,6 +262,12 @@ function hideCellDetails(){
 
 
 document.addEventListener('activeCellChange', (event) => {
+    closeTextMessageUI();
+    // remove response container
+    const responseContainer = document.getElementById('response-container');
+    if(responseContainer) {
+        responseContainer.remove();
+    }
     console.log('activeCellChange event received in global scope');
     hideCellDetails();
     // if cell has image, show details
@@ -294,6 +332,135 @@ socket.on('user-disconnected', (socketId) => {
     disconnectedBall = otherUserBalls.find(ball => ball.socketId === socketId);
     console.log('Disconnected ball:', disconnectedBall);
     otherUserBalls = otherUserBalls.filter(ball => ball.socketId !== socketId);
+});
+
+
+responseBubble = function(message){
+    const bubble = speechBubble(message);
+    bubble.style.zIndex = '1000';
+    bubble.classList.add('left');
+    bubble.style.width = '80%';
+    // 90% opacity
+    bubble.style.opacity = '0.7';
+    // smaller font
+    // bubble.style.fontSize = '0.8em';
+    bubble.classList.add('animateAppearance');
+    return bubble;
+}
+
+openTextMessageUI = function(){
+    const messageForm = document.createElement('div');
+    messageForm.id = 'message-form';
+    messageForm.style.position = 'absolute';
+    messageForm.style.bottom = '20px';
+    messageForm.style.left = '20px';
+    messageForm.style.zIndex = '1000';
+    messageForm.style.width = '30%';
+    messageForm.style.height = '100px';
+    messageForm.style.backgroundColor = 'rgba(255,255,255,0.7)';
+    messageForm.style.borderRadius = '10px';
+    messageForm.style.padding = '10px';
+    messageForm.style.display = 'flex';
+    messageForm.style.flexDirection = 'column';
+    messageForm.style.justifyContent = 'space-between';
+    messageForm.style.alignItems = 'center';
+    messageForm.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+    messageForm.style.transition = 'all 0.5s';
+
+    const textArea = document.createElement('textarea');
+    textArea.style.width = '90%';
+    textArea.style.height = '60%';
+    textArea.style.border = 'none';
+    textArea.style.borderRadius = '5px';
+    textArea.style.padding = '10px';
+    textArea.style.fontSize = '1em';
+    textArea.style.resize = 'none';
+    // bit of margin bottom
+    textArea.style.marginBottom = '10px';
+    // left right too
+    textArea.style.marginLeft = '10px';
+    textArea.style.marginRight = '10px';
+    textArea.placeholder = 'Leave a comment here...';
+
+    const sendButton = document.createElement('div');
+    sendButton.style.width = '100%';
+    sendButton.style.height = '30%';
+    sendButton.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    sendButton.style.color = 'white';
+    sendButton.style.display = 'flex';
+    sendButton.style.justifyContent = 'center';
+    sendButton.style.alignItems = 'center';
+    sendButton.style.borderRadius = '5px';
+    sendButton.style.cursor = 'pointer';
+    sendButton.innerHTML = 'Send message';
+    sendButton.addEventListener('click', () => {
+        console.log('Send button clicked');
+        const message = textArea.value;
+        if(message.length === 0) {
+            return;
+        }
+        console.log('Message:', message);
+
+        // emit chat-message event with i and j
+        socket.emit('chat-message', {
+            i: grid.activeCell.i,
+            j: grid.activeCell.j,
+            message: message
+        });
+
+        // add to top of response container
+        const responseContainer = document.getElementById('response-container');
+        const bubble = responseBubble(message);
+        responseContainer.append(bubble);
+
+        // scroll to bottom
+        responseContainer.scrollTop = responseContainer.scrollHeight;
+
+
+        closeTextMessageUI();
+        // send message to server
+        // socket.emit('new-text-message', message);
+        // clear text area
+        textArea.value = '';
+    });
+
+    messageForm.appendChild(textArea);
+    messageForm.appendChild(sendButton);
+
+    // append to body
+    document.body.appendChild(messageForm);
+
+    // focus on text area
+    textArea.focus();
+
+   
+}
+
+closeTextMessageUI = function(){
+    const messageForm = document.getElementById('message-form');
+    if(messageForm) {
+        messageForm.remove();
+    }
+}
+
+
+// listen for chat-message event
+
+socket.on('chat-message', (data) => {
+    console.log('Chat message received:', data);
+    // if the active cell is the same as the one in the chat message
+    if(grid.activeCell.i === data.i && grid.activeCell.j === data.j) {
+        // add to top of response container
+        const responseContainer = document.getElementById('response-container');
+        if(!responseContainer) {
+            console.error('No response container found');
+            return;
+        }
+        const bubble = responseBubble(data.message);
+        responseContainer.append(bubble);
+        // scroll to bottom
+        responseContainer.scrollTop = responseContainer.scrollHeight;
+    }
 });
 
 </script>

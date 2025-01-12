@@ -32,7 +32,7 @@ const gridCellSchema = new mongoose.Schema({
     // voice is a blob new Blob(..., {type: 'audio/wav'});
     voice: String,
     description: String,
-    chatMessages: [chatMessageSchema]
+    chatMessages: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ChatMessage' }]
 });
 
 // model for grid cells

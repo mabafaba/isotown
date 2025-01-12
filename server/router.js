@@ -94,7 +94,8 @@ router.get('/test', async (req, res) => {
 // get specific grid cell
 router.get('/grid/cell/:x/:y', async (req, res) => {
     try {
-        const cell = await db.GridCell.findOne({ x: req.params.x, y: req.params.y });
+        var cell = await db.GridCell.findOne({ x: req.params.x, y: req.params.y });
+        cell = await cell.populate('chatMessages');
         if (!cell) {
             res.status(404).send('Cell not found');
             return;
@@ -109,10 +110,14 @@ router.get('/grid/cell/:x/:y', async (req, res) => {
 // get field for specific grid cell
 router.get('/grid/cell/:x/:y/:field', async (req, res) => {
     try {
-        const cell = await db.GridCell.findOne({ x: req.params.x, y: req.params.y });
+        var cell = await db.GridCell.findOne({ x: req.params.x, y: req.params.y });
         if (!cell) {
             res.status(404).send('Cell not found');
             return;
+        }
+        // if field is chatMessages, populate
+        if (req.params.field === 'chatMessages') {
+            cell = await cell.populate('chatMessages')
         }
         const field = req.params.field;
         const value = cell[field];
