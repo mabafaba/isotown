@@ -21,7 +21,9 @@ app.use('/isotown', router);
 // });
 
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    path: '/isotown-socket-io', // Match the NGINX location block
+  });
 
 io.on('connection', (socket) => {
     console.log('a user connected');

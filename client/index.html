@@ -294,7 +294,9 @@ document.addEventListener('activeCellChange', (event) => {
 
 
 // socket.io
-const socket = io();
+const socket = io({
+    path: '/isotown-socket-io', // Match the NGINX location block
+  });
 socket.on('connect', () => {
     console.log('Connected to server');
     socket.emit('join', 'client');
