@@ -1,9 +1,9 @@
 // mongoose database connection
 const mongoose = require('mongoose');
 const db = mongoose.connection;
-mongoose.connect('mongodb://localhost:27017/isocraft');
+// mongoose.connect('mongodb://localhost:27017/isocraft');
 // instead (for docker):
-// mongoose.connect('mongodb://mongodb:27017/isotown');
+mongoose.connect('mongodb://mongodb:27017/isotown');
 
 db.on('error', console.error.bind(console, 'connection error:'));
 

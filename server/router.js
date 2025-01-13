@@ -229,4 +229,10 @@ router.get('/deletecells/:code', async (req, res) => {
     }
 })
 
+// log any stray requests
+router.use((req, res, next) => {
+    console.log('stray request:', req.method, req.url);
+    next();
+});
+
 module.exports = router;
