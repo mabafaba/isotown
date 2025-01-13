@@ -8,7 +8,7 @@ const db = require('./server/db.js');
 const port = 3000;
 // serve /client folder on "/client"
 const app = express();
-app.use(express.static('client'));
+app.use("/isotown", express.static('client'));
 
 // use json for request body
 app.use(express.json({ limit: '50mb' }));
