@@ -6,7 +6,7 @@ services:
     image: isotown
     container_name: isotown-web
     ports:
-      - "3000:3000"
+      - "3150:3000"
     environment:
       - DOCKER=true
     restart: always
