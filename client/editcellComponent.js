@@ -1,6 +1,7 @@
 import './audiorecorder.js';
 import './iiisometric.js';
 
+
 class EditCellComponent extends HTMLElement {
     constructor() {
         super();
@@ -272,7 +273,10 @@ class EditCellComponent extends HTMLElement {
             mainNavigation.showForwardButton();
             
         }
-        // if last page, hide next button
+        // if drawing page, start drawing intro tour
+        if(this.page === 3) {
+            this.drawingIntroTour();
+        }
         
         // if correct page, focus on textarea
         if(this.page === 1) {
@@ -382,6 +386,65 @@ class EditCellComponent extends HTMLElement {
         this.cellX = x;
         this.cellY = y;
         return {x: x, y: y};
+    }
+
+    
+    drawingIntroTour () {
+        const drawingComponent = this.shadowRoot.querySelector('isometric-drawing');
+        // scroll to top page3
+
+        const page3 = this.shadowRoot.getElementById('page3');
+        page3.scrollTo({
+            top: 0,
+            behavior: 'auto'
+        });
+
+        introJs().setOptions({
+            steps: [
+            {
+                element: drawingComponent.shadowRoot.querySelector('#drawinginstructions'),
+                intro: 'Here, you\'ll make a drawing that will show as the building on the map.'
+            },
+            {
+                element: drawingComponent.shadowRoot.querySelector('#iiisometric'),
+                intro: 'This is the drawing canvas where you can draw your cubes.'
+            },
+            {
+                element: drawingComponent.shadowRoot.querySelector('#draw'),
+                intro: 'Click here to start drawing.'
+            },
+            {
+                element: drawingComponent.shadowRoot.querySelector('#erase'),
+                intro: 'Click here to erase cubes.'
+            },
+            {
+                element: drawingComponent.shadowRoot.querySelector('#color'),
+                intro: 'Choose a color for your cubes here.'
+            },
+            {
+                element: drawingComponent.shadowRoot.querySelector('#cube-size'),
+                intro: 'Adjust the size of your cubes here.'
+            },
+            {
+                element: drawingComponent.shadowRoot.querySelector('#clear'),
+                intro: 'Click here to clear the entire canvas.'
+            },
+            {
+                element: drawingComponent.shadowRoot.querySelector('#undo'),
+                intro: 'Click here to undo the last action.'
+            }
+            ],
+            scrollToElement: true,
+            scrollPadding: 100,
+            showStepNumbers: true,
+            disableInteraction: true
+        }).oncomplete(() => {
+            const page3 = this.shadowRoot.getElementById('page3');
+            page3.scrollTo({
+            top: page3.scrollHeight,
+            behavior: 'smooth'
+            });
+        }).start();
     }
 
 }

@@ -16,7 +16,7 @@ class GameControls extends HTMLElement {
                     left: 0;
                     width: 100%;
                     height: 130px;
-                    background-color: rgba(255, 255, 255, 0.5);
+                    background-color: rgba(240, 240, 240, 0.5);
                     z-index: 100;
                     text-align: center;
                     display: flex;
@@ -242,6 +242,19 @@ class GameControls extends HTMLElement {
 
     hideArrowButtons() {
         this.shadowRoot.getElementById('navigationbuttons').classList.add('hidden');
+    }
+
+    getArrowButtons() {
+       // return div containing arrow buttons
+         return this.shadowRoot.getElementById('navigationbuttons');
+    }
+
+    getPlusButton() {
+        return this.shadowRoot.getElementById('plusbutton');
+    }
+
+    getMessageButton() {
+        return this.shadowRoot.getElementById('messagebutton');
     }
 
     on(button, callback) {

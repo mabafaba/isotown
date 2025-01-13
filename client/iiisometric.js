@@ -99,6 +99,7 @@ class IsometricDrawing extends HTMLElement {
                 </table>
             </div>
             <div id="iiisometric-wrapper"></div>
+            <div id="drawingbottom"></div>
         `;
 
         this.width = 200;

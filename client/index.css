@@ -2,6 +2,7 @@ body {
     margin: 0;
     padding: 0;
     overflow: hidden;
+    background-color: black;
 }
 button {
     position: absolute;
@@ -10,6 +11,52 @@ button {
     background-color: white;
     border: none;
     cursor: pointer;
+}
+
+
+#requestmicbutton {
+    /* align center */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+
+    /* cool button styling */
+    border-radius: 20px;
+    font-size: 15px;
+    width: 140px;
+    height: 70px;
+    color: black;
+    /* shadow */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    /* align content at center vertically and horizontally */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* color */
+    background-color: rgb(41, 208, 202);
+}
+
+#requestmicbutton:hover {
+    /* translate and remove shadow */
+    transform: translate(3px, 3px);
+    box-shadow: none;
+}
+#requestmicbuttoncontainer {
+   /* full width, content center aligned */
+
+
+   
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    
+
 }
 
 #gamecontrols {
