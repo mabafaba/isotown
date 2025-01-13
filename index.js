@@ -14,7 +14,7 @@ app.use(express.static('client'));
 app.use(express.json({ limit: '50mb' }));
 // new grid cell
 
-app.use(router);
+app.use('/isotown', router);
 
 // app.listen(port, () => {
 //     console.log(`Server listening at http://localhost:${port}`);
