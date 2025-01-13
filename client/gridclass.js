@@ -18,8 +18,8 @@ class Grid {
             }
         // this.activeCell = this.cells[floor(this.cols / 2)][floor(this.rows / 2)];
         // pick random cell to start:
-        const randomI = floor(random(this.cols));
-        const randomJ = floor(random(this.rows));
+        const randomI = 3;//floor(random(this.cols));
+        const randomJ = 3;floor(random(this.rows));
         this.activeCell = this.cells[randomI][randomJ];
         }
 

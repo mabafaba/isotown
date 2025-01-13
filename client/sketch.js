@@ -148,21 +148,21 @@ function draw() {
 // use arrows to move the grid
 
 function keyPressed() {
-    // log center cell coordinates
-    if (keyCode === LEFT_ARROW) {
-        grid.stepSouthWest();
-        }
-    if (keyCode === RIGHT_ARROW) {
-        grid.stepNorthEast();
-        }
-    if (keyCode === UP_ARROW) {
-        grid.stepNorthWest();
-        }
-    if (keyCode === DOWN_ARROW) {
-        grid.stepSouthEast();
-        }
+    // // log center cell coordinates
+    // if (keyCode === LEFT_ARROW) {
+    //     grid.stepSouthWest();
+    //     }
+    // if (keyCode === RIGHT_ARROW) {
+    //     grid.stepNorthEast();
+    //     }
+    // if (keyCode === UP_ARROW) {
+    //     grid.stepNorthWest();
+    //     }
+    // if (keyCode === DOWN_ARROW) {
+    //     grid.stepSouthEast();
+    //     }
     
-    return;
+    // return;
     }
 
 // set canvas to view height
