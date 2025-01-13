@@ -148,7 +148,7 @@ const saveCellToDatabase = async function (cell) {
     };
 
     const payloadString = JSON.stringify(payload);
-    return fetch('http://localhost:3000/grid/cell', {
+    return fetch('./grid/cell', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
